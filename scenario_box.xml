@@ -1,0 +1,48 @@
+<welcome>
+  <!-- waypoints - define before the agents! -->
+  <waypoint id="ul" x="10" y="10" r="5" />
+  <waypoint id="uc" x="60" y="10" r="3" />
+  <waypoint id="ur" x="110" y="10" r="3" />
+  <waypoint id="cl" x="10" y="60" r="3" />
+  <waypoint id="cr" x="110" y="60" r="3" />
+  <waypoint id="ll" x="10" y="110" r="5" />
+  <waypoint id="lc" x="60" y="110" r="5" />
+  <waypoint id="lr" x="110" y="110" r="5" />
+
+  <!-- agents -->
+  <agent x="10" y="110" n="2" dx="1" dy="1">
+    <addwaypoint id="ur" />
+    <addwaypoint id="ll" />
+  </agent>
+
+  <agent x="60" y="110" n="2" dx="1" dy="1">
+    <addwaypoint id="uc" />
+    <addwaypoint id="lc" />
+  </agent>
+
+  <agent x="110" y="110" n="2" dx="1" dy="1">
+    <addwaypoint id="ul" />
+    <addwaypoint id="lr" />
+  </agent>
+  <agent x="110" y="60" n="2" dx="1" dy="1">
+    <addwaypoint id="cl" />
+    <addwaypoint id="cr" />
+  </agent>
+  <agent x="110" y="10" n="2" dx="1" dy="1">
+    <addwaypoint id="ll" />
+    <addwaypoint id="ur" />
+  </agent>
+  <agent x="60" y="10" n="2" dx="1" dy="1">
+    <addwaypoint id="lc" />
+    <addwaypoint id="uc" />
+  </agent>
+  <agent x="10" y="10" n="2" dx="1" dy="1">
+    <addwaypoint id="lr" />
+    <addwaypoint id="ul" />
+  </agent>
+  <agent x="10" y="60" n="2" dx="1" dy="1">
+    <addwaypoint id="cr" />
+    <addwaypoint id="cl" />
+  </agent>
+
+</welcome>
