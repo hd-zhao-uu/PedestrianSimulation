@@ -35,9 +35,87 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 	setupHeatmapSeq();
 }
 
-void Ped::Model::tick()
-{
-	// EDIT HERE FOR ASSIGNMENT 1
+// Utilities for Assignment 1
+void a1_move (Ped::Tagent* agent) {
+	// retrieve the agent and calculate its next desired position
+	agent->computeNextDesiredPosition();
+		
+	int dX = agent->getDesiredX(), dY = agent->getDesiredY();
+	// set its position to the calculated desired one
+	agent->setX(dX);
+	agent->setY(dY);
+};	
+
+void Ped::Model::tick() {
+    // EDIT HERE FOR ASSIGNMENT 1		
+	int agentSize = agents.size();
+
+    switch (implementation) {
+        case SEQ:
+			{	
+				// std::cout << "[SERIAL]" << std::endl;
+				for (int i = 0; i < agentSize; i++) {
+					Ped::Tagent* agent = agents[i];
+					a1_move(agent);
+				}
+			}
+
+            break;
+        case PTHREAD:
+			{	
+				// std::cout << "[USING PTHREADS]" << std::endl;
+				int threadNum = 8;
+				int agentsPerThread = agentSize / threadNum;
+				int agentLeft = agentSize - agentsPerThread * threadNum;
+
+				// lambda function for threads
+				auto func = [](int start, int end, std::vector<Ped::Tagent*> agents) {
+					for(int i = start; i <= end; i++) {
+						Ped::Tagent* agent = agents[i];
+						a1_move(agent);
+					}
+				};
+				
+
+				std::thread* threads = new std::thread[threadNum];
+				for(int i = 0; i < threadNum; i++) {
+                    int start = i * agentsPerThread, end = (i+1) * agentsPerThread - 1;
+					threads[i] = std::thread(func, start, end, std::ref(agents));
+				}
+
+				// handle the left agents in the main thread
+				if(agentLeft) {
+					int start = agentsPerThread * threadNum, end = agentSize - 1;
+					for(int i = start; i <= end; i++) {
+						Ped::Tagent* agent = agents[i];
+						a1_move(agent);
+					}
+				}
+
+				for(int i = 0; i < threadNum; i++) {
+					threads[i].join();
+				}
+
+				delete[] threads;
+				break;
+			}
+
+        case OMP:
+			{	
+				// std::cout << "[USING OPENMP]" << std::endl;
+				int i;
+				#pragma omp parallel for shared(agents)
+				for (i = 0; i < agentSize; i++) {
+					Ped::Tagent* agent = agents[i];
+					a1_move(agent);
+				}
+				break;	
+			}
+           
+
+        default:
+            break;
+    }
 }
 
 ////////////

@@ -67,7 +67,9 @@ int main(int argc, char*argv[]) {
 		// Reading the scenario file and setting up the crowd simulation model
 		Ped::Model model;
 		ParseScenario parser(scenefile);
-		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
+		// model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
+		// model.setup(parser.getAgents(), parser.getWaypoints(), Ped::PTHREAD);
+		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::OMP);
 
 		// GUI related set ups
 		QApplication app(argc, argv);
@@ -102,7 +104,10 @@ int main(int argc, char*argv[]) {
 
 			// Change this variable when testing different versions of your code. 
 			// May need modification or extension in later assignments depending on your implementations
-			Ped::IMPLEMENTATION implementation_to_test = Ped::SEQ;
+
+			// Ped::IMPLEMENTATION implementation_to_test = Ped::SEQ;
+			// Ped::IMPLEMENTATION implementation_to_test = Ped::PTHREAD;
+			Ped::IMPLEMENTATION implementation_to_test = Ped::OMP;
 			{
 				Ped::Model model;
 				ParseScenario parser(scenefile);
