@@ -49,7 +49,7 @@ void a1_move (Ped::Tagent* agent) {
 void Ped::Model::tick() {
     // EDIT HERE FOR ASSIGNMENT 1		
 	int agentSize = agents.size();
-
+	int threadNum = getThreadNum();
     switch (implementation) {
         case SEQ:
 			{	
@@ -59,12 +59,11 @@ void Ped::Model::tick() {
 					a1_move(agent);
 				}
 			}
-
-            break;
+			break;
         case PTHREAD:
 			{	
 				// std::cout << "[USING PTHREADS]" << std::endl;
-				int threadNum = 8;
+				// printf("thread: %d\n", threadNum);
 				int agentsPerThread = agentSize / threadNum;
 				int agentLeft = agentSize - agentsPerThread * threadNum;
 
@@ -97,20 +96,25 @@ void Ped::Model::tick() {
 				}
 
 				delete[] threads;
-				break;
+				
 			}
+			break;
 
         case OMP:
 			{	
 				// std::cout << "[USING OPENMP]" << std::endl;
+				// printf("thread: %d\n", threadNum);
 				int i;
-				#pragma omp parallel for shared(agents)
+				#pragma omp parallel for shared(agents) num_threads(threadNum)
 				for (i = 0; i < agentSize; i++) {
+					// int nthrds = omp_get_num_threads();
+					// printf("threads: %d\n", nthrds);
 					Ped::Tagent* agent = agents[i];
 					a1_move(agent);
 				}
-				break;	
+				
 			}
+			break;	
            
 
         default:

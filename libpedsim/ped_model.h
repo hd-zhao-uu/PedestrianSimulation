@@ -31,6 +31,14 @@ namespace Ped{
 		// Sets everything up
 		void setup(std::vector<Tagent*> agentsInScenario, std::vector<Twaypoint*> destinationsInScenario,IMPLEMENTATION implementation);
 		
+
+		// threadNum setter/getter
+		void setThreadNum(const int threadNum) {
+			this->threadNum = threadNum;
+		}
+
+		int getThreadNum() const {return threadNum; }
+
 		// Coordinates a time step in the scenario: move all agents by one step (if applicable).
 		void tick();
 
@@ -54,6 +62,8 @@ namespace Ped{
 		// should be used for calculating the desired positions of
 		// agents (Assignment 1)
 		IMPLEMENTATION implementation;
+
+		int threadNum;
 
 		// The agents in this scenario
 		std::vector<Tagent*> agents;
