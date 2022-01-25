@@ -44,7 +44,21 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 // 	// set its position to the calculated desired one
 // 	agent->setX(dX);
 // 	agent->setY(dY);
-// };	
+// };
+void pFunc(int tId, int start, int end, std::vector<Ped::Tagent*>& agents) {
+	// printf("thread= %d, start=%d, end=%d\n", tId, start, end);
+	for(int i = start; i <= end; i++) {
+		// a1Move(agent[i]);	
+		// retrieve the agent and calculate its next desired position
+		Ped::Tagent* agent = agents[i];
+		agent->computeNextDesiredPosition();
+			
+		int dX = agent->getDesiredX(), dY = agent->getDesiredY();
+		// set its position to the calculated desired one
+		agent->setX(dX);
+		agent->setY(dY);
+	}
+};	
 
 void Ped::Model::tick() {
     // EDIT HERE FOR ASSIGNMENT 1	
@@ -59,13 +73,13 @@ void Ped::Model::tick() {
 	};	
 
 	// lambda function for threads
-	auto pFunc = [&](int tId, int start, int end) {
-		printf("thread= %d, start=%d, end=%d\n", tId, start, end);
-		for(int i = start; i <= end; i++) {
-			// a1Move(agent[i]);	
-			a1Move(agents[i]);
-	 	}
-	};
+	// auto pFunc = [&](int tId, int start, int end) {
+	// 	printf("thread= %d, start=%d, end=%d\n", tId, start, end);
+	// 	for(int i = start; i <= end; i++) {
+	// 		// a1Move(agent[i]);	
+	// 		a1Move(agents[i]);
+	//  	}
+	// };
 		
 	int agentSize = agents.size();
 	int threadNum = getThreadNum();
@@ -103,8 +117,8 @@ void Ped::Model::tick() {
 						end = start + agentsPerThread - 1;
 					}
 					
-					// threads[i] = std::thread(pFunc, start, end, std::ref(agents));
-					threads[i] = std::thread(pFunc, i, start, end);
+					threads[i] = std::thread(pFunc, i, start, end, std::ref(agents));
+					// threads[i] = std::thread(pFunc, i, start, end);
 				}
 
 				for(int i = 0; i < threadNum; i++) {
