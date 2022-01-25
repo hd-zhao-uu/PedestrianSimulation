@@ -41,3 +41,6 @@
 # binary file
 demo/demo
 core.*
+
+#editor
+.vscode

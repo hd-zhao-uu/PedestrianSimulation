@@ -31,7 +31,7 @@ namespace Ped{
 		// Sets everything up
 		void setup(std::vector<Tagent*> agentsInScenario, std::vector<Twaypoint*> destinationsInScenario,IMPLEMENTATION implementation);
 		
-
+		// FOR ASSIGNMENT 1
 		// threadNum setter/getter
 		void setThreadNum(const int threadNum) {
 			this->threadNum = threadNum;

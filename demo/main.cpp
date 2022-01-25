@@ -48,7 +48,7 @@ int main(int argc, char*argv[]) {
 			}
 			else if (strcmp(&argv[i][2], "help") == 0)
 			{
-				cout << "Usage: " << argv[0] << " [--help] [--timing-mode] [--threads NUM] [scenario]" << endl;
+				cout << "Usage: " << argv[0] << " [--help] [--timing-mode] [--threads NUM] [--impl IMPL][scenario]" << endl;
 				return 0;
 			}
 			else if (strcmp(&argv[i][2], "threads") == 0)
@@ -64,12 +64,17 @@ int main(int argc, char*argv[]) {
 					impl = Ped::IMPLEMENTATION::OMP;
 				}else if(strcmp(argv[i], "PTHREAD") == 0) {
 					impl = Ped::IMPLEMENTATION::PTHREAD;
+				}else {
+					cerr << "Unrecognized implementation "<< endl;
+					return 0;
+
 				}
 				cout << "impl " << impl << endl;
 			}
 			else
 			{
 				cerr << "Unrecognized command: \"" << argv[i] << "\". Ignoring ..." << endl;
+				return 0;
 			}
 		}
 		else // Assume it is a path to scenefile

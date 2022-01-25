@@ -36,18 +36,37 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario, std::vector<T
 }
 
 // Utilities for Assignment 1
-void a1_move (Ped::Tagent* agent) {
-	// retrieve the agent and calculate its next desired position
-	agent->computeNextDesiredPosition();
+// void a1Move (Ped::Tagent* agent) {
+// 	// retrieve the agent and calculate its next desired position
+// 	agent->computeNextDesiredPosition();
 		
-	int dX = agent->getDesiredX(), dY = agent->getDesiredY();
-	// set its position to the calculated desired one
-	agent->setX(dX);
-	agent->setY(dY);
-};	
+// 	int dX = agent->getDesiredX(), dY = agent->getDesiredY();
+// 	// set its position to the calculated desired one
+// 	agent->setX(dX);
+// 	agent->setY(dY);
+// };	
 
 void Ped::Model::tick() {
-    // EDIT HERE FOR ASSIGNMENT 1		
+    // EDIT HERE FOR ASSIGNMENT 1	
+	auto a1Move = [](Ped::Tagent* agent) {
+		// retrieve the agent and calculate its next desired position
+		agent->computeNextDesiredPosition();
+			
+		int dX = agent->getDesiredX(), dY = agent->getDesiredY();
+		// set its position to the calculated desired one
+		agent->setX(dX);
+		agent->setY(dY);
+	};	
+
+	// lambda function for threads
+	auto pFunc = [&](int tId, int start, int end) {
+		printf("thread= %d, start=%d, end=%d\n", tId, start, end);
+		for(int i = start; i <= end; i++) {
+			// a1Move(agent[i]);	
+			a1Move(agents[i]);
+	 	}
+	};
+		
 	int agentSize = agents.size();
 	int threadNum = getThreadNum();
     switch (implementation) {
@@ -55,8 +74,9 @@ void Ped::Model::tick() {
 			{	
 				// std::cout << "[SERIAL]" << std::endl;
 				for (int i = 0; i < agentSize; i++) {
-					Ped::Tagent* agent = agents[i];
-					a1_move(agent);
+					// Ped::Tagent* agent = agents[i];
+					// a1Move(agent);
+					a1Move(agents[i]);
 				}
 			}
 			break;
@@ -64,31 +84,27 @@ void Ped::Model::tick() {
 			{	
 				// std::cout << "[USING PTHREADS]" << std::endl;
 				// printf("thread: %d\n", threadNum);
+				// printf("Agent size: %d\n", agentSize);
 				int agentsPerThread = agentSize / threadNum;
-				int agentLeft = agentSize - agentsPerThread * threadNum;
-
-				// lambda function for threads
-				auto func = [](int start, int end, std::vector<Ped::Tagent*> agents) {
-					for(int i = start; i <= end; i++) {
-						Ped::Tagent* agent = agents[i];
-						a1_move(agent);
-					}
-				};
-				
+				int agentLeft = agentSize % threadNum;
 
 				std::thread* threads = new std::thread[threadNum];
-				for(int i = 0; i < threadNum; i++) {
-                    int start = i * agentsPerThread, end = (i+1) * agentsPerThread - 1;
-					threads[i] = std::thread(func, start, end, std::ref(agents));
-				}
-
-				// handle the left agents in the main thread
-				if(agentLeft) {
-					int start = agentsPerThread * threadNum, end = agentSize - 1;
-					for(int i = start; i <= end; i++) {
-						Ped::Tagent* agent = agents[i];
-						a1_move(agent);
+				int start, end;
+				// allocation strategy:
+				// 	if `agentSize` cannot be evenly divided by `threadNum`, then
+				// 	the first `agentLeft` threads will handle 1 more agent than other the threads.
+				for(int i = 0; i < threadNum; i++) {	
+					if(i < agentLeft){
+						start = i * agentsPerThread + i;
+						end = start + agentsPerThread;
 					}
+					else {
+						start = i * agentsPerThread + agentLeft;
+						end = start + agentsPerThread - 1;
+					}
+					
+					// threads[i] = std::thread(pFunc, start, end, std::ref(agents));
+					threads[i] = std::thread(pFunc, i, start, end);
 				}
 
 				for(int i = 0; i < threadNum; i++) {
@@ -108,9 +124,10 @@ void Ped::Model::tick() {
 				#pragma omp parallel for shared(agents) num_threads(threadNum)
 				for (i = 0; i < agentSize; i++) {
 					// int nthrds = omp_get_num_threads();
-					// printf("threads: %d\n", nthrds);
-					Ped::Tagent* agent = agents[i];
-					a1_move(agent);
+					// printf("omp threads: %d\n", nthrds);
+					// Ped::Tagent* agent = agents[i];
+					// a1Move(agent);
+					a1Move(agents[i]);
 				}
 				
 			}
