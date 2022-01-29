@@ -18,15 +18,11 @@ class PedSimulation : public QObject{
 	Q_OBJECT
 
 public:
-	PedSimulation(Ped::Model &model, MainWindow &window);
+	PedSimulation(Ped::Model &model, MainWindow *window, bool timingMode);
 	PedSimulation() = delete;
     ~PedSimulation() {}
 
-	// Running simulation without GUI. Use for profiling.
-	void runSimulationWithoutQt(int maxNumberOfStepsToSimulate);
-
-	// Running simulation with GUI. Use for visualization.
-	void runSimulationWithQt(int maxNumberOfStepsToSimulate);
+    void runSimulation(int maxNumberOfStepsToSimulate);
 	int getTickCount() const;
 	public slots:
 	// Performs one simulation step
@@ -34,9 +30,16 @@ public:
 
 private:
 	Ped::Model &model;
-	MainWindow &window;
+	MainWindow *window;
 	QTimer movetimer;
 	int maxSimulationSteps;
 	int tickCounter;
+    bool timingMode;
+
+	// Running simulation without GUI. Use for profiling.
+	void runSimulationWithoutQt(int maxNumberOfStepsToSimulate);
+
+	// Running simulation with GUI. Use for visualization.
+	void runSimulationWithQt(int maxNumberOfStepsToSimulate);
 };
 #endif

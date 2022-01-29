@@ -93,14 +93,6 @@ int main(int argc, char*argv[]) {
 		Ped::Model model;
 		ParseScenario parser(scenefile);
 		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
-		// model.setup(parser.getAgents(), parser.getWaypoints(), Ped::PTHREAD);
-		// model.setup(parser.getAgents(), parser.getWaypoints(), Ped::OMP);
-		// model.setThreadNum(threadNum);
-		// printf("Set threadNum: %d \n", threadNum);
-
-		// GUI related set ups
-		QApplication app(argc, argv);
-		MainWindow mainwindow(model);
 
 		// Default number of steps to simulate. Feel free to change this.
 		const int maxNumberOfStepsToSimulate = 100000;
@@ -112,6 +104,7 @@ int main(int argc, char*argv[]) {
 		// Compile with timing-release to enable this automatically.
 		if (timing_mode)
 		{
+            //MainWindow mainwindow(model, timing_mode);
 			// Run sequentially
 
 			double fps_seq, fps_target;
@@ -119,28 +112,29 @@ int main(int argc, char*argv[]) {
 				Ped::Model model;
 				ParseScenario parser(scenefile);
 				model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
-				PedSimulation simulation(model, mainwindow);
+				PedSimulation simulation(model, NULL, timing_mode);
 				// Simulation mode to use when profiling (without any GUI)
 				std::cout << "Running reference version...\n";
 				auto start = std::chrono::steady_clock::now();
-				simulation.runSimulationWithoutQt(maxNumberOfStepsToSimulate);
+				simulation.runSimulation(maxNumberOfStepsToSimulate);
 				auto duration_seq = std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - start);
 				fps_seq = ((float)simulation.getTickCount()) / ((float)duration_seq.count())*1000.0;
 				cout << "Reference time: " << duration_seq.count() << " milliseconds, " << fps_seq << " Frames Per Second." << std::endl;
 			}
 
 			// Change this variable when testing different versions of your code. 
+			// May need modification or extension in later assignments depending on your implementations
 			Ped::IMPLEMENTATION implementation_to_test = impl;
 			{
 				Ped::Model model;
 				ParseScenario parser(scenefile);
 				model.setup(parser.getAgents(), parser.getWaypoints(), implementation_to_test);
 				model.setThreadNum(threadNum);
-				PedSimulation simulation(model, mainwindow);
+				PedSimulation simulation(model, NULL, timing_mode);
 				// Simulation mode to use when profiling (without any GUI)
 				std::cout << "Running target version...\n";
 				auto start = std::chrono::steady_clock::now();
-				simulation.runSimulationWithoutQt(maxNumberOfStepsToSimulate);
+				simulation.runSimulation(maxNumberOfStepsToSimulate);
 				auto duration_target = std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - start);
 				fps_target = ((float)simulation.getTickCount()) / ((float)duration_target.count())*1000.0;
 				cout << "Target time: " << duration_target.count() << " milliseconds, " << fps_target << " Frames Per Second." << std::endl;
@@ -153,15 +147,17 @@ int main(int argc, char*argv[]) {
 		// Graphics version
 		else
 		{
+            QApplication app(argc, argv);
+            MainWindow mainwindow(model);
 
-			PedSimulation simulation(model, mainwindow);
+			PedSimulation simulation(model, &mainwindow, timing_mode);
 
 			cout << "Demo setup complete, running ..." << endl;
 
 			// Simulation mode to use when visualizing
 			auto start = std::chrono::steady_clock::now();
 			mainwindow.show();
-			simulation.runSimulationWithQt(maxNumberOfStepsToSimulate);
+			simulation.runSimulation(maxNumberOfStepsToSimulate);
 			retval = app.exec();
 
 			auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - start);

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-PedSimulation::PedSimulation(Ped::Model &model_, MainWindow &window_) : model(model_), window(window_), maxSimulationSteps(-1)
+PedSimulation::PedSimulation(Ped::Model &model_, MainWindow *window_, bool timing_mode) : model(model_), window(window_), maxSimulationSteps(-1), timingMode(timing_mode)
 {
 	tickCounter = 0;
 }
@@ -25,11 +25,23 @@ void PedSimulation::simulateOneStep()
 {
 	tickCounter++;
 	model.tick();
-	window.paint();
+    if (!timingMode)
+        window->paint();
 	if (maxSimulationSteps-- == 0)
 	{
-		QApplication::quit();
+        if(timingMode)
+            exit(0);
+        else
+            QApplication::quit();
 	}
+}
+
+void PedSimulation::runSimulation(int maxNumberOfStepsToSimulate)
+{
+    if (timingMode)
+        runSimulationWithoutQt(maxNumberOfStepsToSimulate);
+    else
+        runSimulationWithQt(maxNumberOfStepsToSimulate);
 }
 
 void PedSimulation::runSimulationWithQt(int maxNumberOfStepsToSimulate)

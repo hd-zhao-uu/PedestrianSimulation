@@ -13,15 +13,21 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 
 int cuda_test()
 {
+    static int tested = 0;
+
 	const int arraySize = 5;
 	const int a[arraySize] = { 1, 2, 3, 4, 5 };
 	const int b[arraySize] = { 10, 20, 30, 40, 50 };
 	int c[arraySize] = { 0 };
 
+    if (tested == 1)
+        return 0;
+    tested = 1;
+
 	// Add vectors in parallel.
 	cudaError_t cudaStatus = addWithCuda(c, a, b, arraySize);
 	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "addWithCuda failed!");
+		fprintf(stderr, "addWithCuda failed!\n");
 		return 1;
 	}
 
@@ -32,7 +38,7 @@ int cuda_test()
 	// tracing tools such as Nsight and Visual Profiler to show complete traces.
 	cudaStatus = cudaDeviceReset();
 	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaDeviceReset failed!");
+		fprintf(stderr, "cudaDeviceReset failed!\n");
 		return 1;
 	}
 
