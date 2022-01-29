@@ -135,7 +135,7 @@ void Ped::Model::tick() {
 				// std::cout << "[USING OPENMP]" << std::endl;
 				// printf("thread: %d\n", threadNum);
 				int i;
-				#pragma omp parallel for shared(agents) num_threads(threadNum)
+				#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
 				for (i = 0; i < agentSize; i++) {
 					// int nthrds = omp_get_num_threads();
 					// printf("omp threads: %d\n", nthrds);
