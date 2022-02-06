@@ -48,6 +48,11 @@ namespace Ped {
 		// Adds a new waypoint to reach for this agent
 		void addWaypoint(Twaypoint* wp);
 
+
+		Twaypoint* getDestination() const {return destination; };
+		deque<Twaypoint*> getWaypoints() const {return waypoints};
+
+
 	private:
 		Tagent() {};
 

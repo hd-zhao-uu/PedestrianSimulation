@@ -6,16 +6,19 @@
 // Adapted for Low Level Parallel Programming 2017
 //
 #include "ped_model.h"
+
+#include <emmintrin.h>
 #include <omp.h>
+#include <stdlib.h>
 #include <algorithm>
 #include <iostream>
 #include <stack>
 #include <thread>
+
 #include "cuda_testkernel.h"
+#include "ped_agent_soa.h"
 #include "ped_model.h"
 #include "ped_waypoint.h"
-
-#include <stdlib.h>
 
 void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
                        std::vector<Twaypoint*> destinationsInScenario,
@@ -138,6 +141,32 @@ void Ped::Model::tick() {
                 // int nthrds = omp_get_num_threads();
                 // printf("omp threads: %d\n", nthrds);
                 a1Move(agents[i]);
+            }
+
+        } break;
+
+        case VECTOR: {
+            // SIMD
+            this->agentSOA = new Ped::TagentSOA(agents);
+            // agentSOA->computeNextDesiredPosition();
+
+            // for (size_t i = 0; i < agentSOA->size; i+=4) {
+            //     __m128 dX, dY;
+            //     dX = _mm_load_ps(&agentSOA->desiredXs[i]);
+            //     dY = _mm_load_ps(&agentSOA->desiredYs[i]);
+
+            //     // set its position to the calculated desired one
+            //     _mm_store_ps(&agentSOA->xs[i], dX);
+            //     _mm_store_ps(&agentSOA->ys[i], dY);
+            // }
+
+            agentSOA->computeNextDesiredPositionAndMove();
+            float* xs = agentSOA->xs, *ys = agentSOA->ys;
+
+            // For Painting
+            for(size_t i = 0; i < agents.size(); i++) {
+                agents[i]->setX(xs[i]);
+                agents[i]->setY(ys[i]);
             }
 
         } break;

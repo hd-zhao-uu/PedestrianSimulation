@@ -74,6 +74,10 @@ namespace Ped{
 		// Moves an agent towards its next position
 		void move(Ped::Tagent *agent);
 
+
+		Ped::TagentSOA* agentSOA;
+
+
 		////////////
 		/// Everything below here won't be relevant until Assignment 3
 		///////////////////////////////////////////////
