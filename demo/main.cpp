@@ -64,6 +64,8 @@ int main(int argc, char*argv[]) {
 					impl = Ped::IMPLEMENTATION::OMP;
 				}else if(strcmp(argv[i], "PTHREAD") == 0) {
 					impl = Ped::IMPLEMENTATION::PTHREAD;
+				}else if(strcmp(argv[i], "VECTOR") == 0) {
+					impl = Ped::IMPLEMENTATION::VECTOR;
 				}else {
 					cerr << "Unrecognized implementation "<< endl;
 					return 0;

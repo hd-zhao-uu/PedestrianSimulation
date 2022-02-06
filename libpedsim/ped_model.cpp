@@ -7,7 +7,7 @@
 //
 #include "ped_model.h"
 
-#include <emmintrin.h>
+#include <nmmintrin.h>
 #include <omp.h>
 #include <stdlib.h>
 #include <algorithm>
@@ -36,6 +36,8 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
 
     // Sets the chosen implemenation. Standard in the given code is SEQ
     this->implementation = implementation;
+
+    this->agentSOA = new Ped::TagentSOA(agents);
 
     // Set up heatmap (relevant for Assignment 4)
     setupHeatmapSeq();
@@ -147,7 +149,7 @@ void Ped::Model::tick() {
 
         case VECTOR: {
             // SIMD
-            this->agentSOA = new Ped::TagentSOA(agents);
+            
             // agentSOA->computeNextDesiredPosition();
 
             // for (size_t i = 0; i < agentSOA->size; i+=4) {

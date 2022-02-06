@@ -16,6 +16,7 @@
 #include <set>
 
 #include "ped_agent.h"
+#include "ped_agent_soa.h"
 
 namespace Ped{
 	class Tagent;

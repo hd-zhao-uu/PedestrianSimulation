@@ -1,5 +1,5 @@
 #include "ped_agent_soa.h"
-#include <emmintrin.h>
+#include <nmmintrin.h>
 #include <cmath>
 
 Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
@@ -27,7 +27,10 @@ Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
     destYs = (float*)_mm_malloc(sizeof(float) * soaSize, mAlignment);
     destRs = (float*)_mm_malloc(sizeof(float) * soaSize, mAlignment);
 
-    waypoints = std::vector<std::deque<Twaypoint*>>(soaSize);
+    // waypoints = std::vector<std::deque<Twaypoint*>>(soaSize);
+
+    waypoints = std::vector<std::vector<Twaypoint*>>(soaSize);
+    currs = (int*)_mm_malloc(sizeof(int) * soaSize, mAlignment);
 
     // init values
     for (size_t i = 0; i < size; i++) {
@@ -38,35 +41,47 @@ Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
 
         // currs[i] = 0;
         auto tWaypoints = agents[i]->getWaypoints();
-        // waypoints[i] =
-        //     std::vector<Twaypoint*>(tWaypoints.begin(), tWaypoints.end());
-        waypoints[i] = std::deque<Twaypoint*>(tWaypoints.begin(), tWaypoints.end());
+        //waypoints[i] = std::deque<Twaypoint*>(tWaypoints.begin(), tWaypoints.end());
+        waypoints[i] =
+            std::vector<Twaypoint*>(tWaypoints.begin(), tWaypoints.end());
+        
+        destXs[i] = agents[i]->getDestination()->getx();
+        destYs[i] = agents[i]->getDestination()->gety();
+        destRs[i] = agents[i]->getDestination()->getr();
 
-        Ped::Twaypoint* initDest = nullptr, *dest;
-        waypoints.push_back(initDest);
-        dest = waypoints[i].front();
-        destXs[i] = dest->getx();
-        destYs[i] = dest->gety();
-        destRs[i] = dest->getr();
+        // Ped::Twaypoint* nextDest = nullptr;
+        // waypoints[i].push_back(dest);
+        // nextDest = waypoints[i].front();
+        // destXs[i] = nextDest->getx();
+        // destYs[i] = nextDest->gety();
+        // destRs[i] = nextDest->getr();
+        // dest = nextDest;
+        // waypoints[i].pop_front();
+        
     }
 }
 
 void Ped::TagentSOA::getNextDestination() {
-    for (int i = 0; i < size; i++) {
-        bool agentReachedDestination = false;
+    Ped::Twaypoint* nextDestination = NULL;
+    bool agentReachedDestination = false;
 
+    for (int i = 0; i < size; i++) {
         double diffX = destXs[i] - xs[i];
         double diffY = destYs[i] - ys[i];
         double length = sqrt(diffX * diffX + diffY * diffY);
 
         agentReachedDestination = length < destRs[i];
 
-        if (agentReachedDestination && !waypoints[i].empty()) {
+        if (agentReachedDestination) {
             // agent has reached destination (or has no current destination); get next destination if available
-            Ped::Twaypoint* dest = waypoints[i].front();
-            destXs[i] = dest->getx();
-            destYs[i] = dest->gety();
-            destRs[i] = dest->getr();
+            // waypoints[i].push_back(this->dest);
+            // Ped::Twaypoint* tDest = waypoints[i].front();
+            currs[i] =(currs[i] + 1) % waypoints[i].size();
+            Ped::Twaypoint* tDest = waypoints[i][currs[i]];
+            destXs[i] = tDest->getx();
+            destYs[i] = tDest->gety();
+            destRs[i] = tDest->getr();
+            // waypoints[i].pop_front();
         }
     }
 }
@@ -137,7 +152,7 @@ void Ped::TagentSOA::computeNextDesiredPositionAndMove() {
         _mm_store_ps(&this->desiredXs[i], desiredX);
         _mm_store_ps(&this->desiredYs[i], desiredY);
 
-        _mm_store_ps(&this->xs[i], dX);
-        _mm_store_ps(&this->ys[i], dY);
+        _mm_store_ps(&this->xs[i], desiredX);
+        _mm_store_ps(&this->ys[i], desiredY);
     }
 }
