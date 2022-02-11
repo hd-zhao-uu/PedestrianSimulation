@@ -50,7 +50,7 @@ namespace Ped {
 
 
 		Twaypoint* getDestination() const {return destination; };
-		deque<Twaypoint*> getWaypoints() const {return waypoints; };
+		std::deque<Twaypoint*> getWaypoints() const {return waypoints; };
 
 
 	private:

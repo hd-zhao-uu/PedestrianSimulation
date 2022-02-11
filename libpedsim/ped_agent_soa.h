@@ -23,16 +23,15 @@ struct TagentSOA {
     // double *destXs, *destYs, *destRs;
     float *destXs, *destYs, *destRs;
 
-    Ped::Twaypoint* dest;
-
     // std::deque<Twaypoint*>* waypoints;
-    // std::vector<std::deque<Ped::Twaypoint*>> waypoints;  
+    // std::vector<std::deque<Ped::Twaypoint*>> waypoints; 
 
     int* currs;
-    std::vector<std::vector<Ped::Twaypoint*>> waypoints;  
+    std::vector<std::vector<Ped::Twaypoint*> > waypoints;  
 
 
     TagentSOA(const std::vector<Ped::Tagent*>& agents);
+
 
     void getNextDestination();
 

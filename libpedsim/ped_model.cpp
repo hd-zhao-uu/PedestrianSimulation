@@ -37,7 +37,7 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     // Sets the chosen implemenation. Standard in the given code is SEQ
     this->implementation = implementation;
 
-    this->agentSOA = new Ped::TagentSOA(agents);
+    agentSOA = new Ped::TagentSOA(agents);
 
     // Set up heatmap (relevant for Assignment 4)
     setupHeatmapSeq();
@@ -138,7 +138,7 @@ void Ped::Model::tick() {
             // std::cout << "[USING OPENMP]" << std::endl;
             // printf("thread: %d\n", threadNum);
             int i;
-#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
             for (i = 0; i < agentSize; i++) {
                 // int nthrds = omp_get_num_threads();
                 // printf("omp threads: %d\n", nthrds);
@@ -148,19 +148,6 @@ void Ped::Model::tick() {
         } break;
 
         case VECTOR: {
-            // SIMD
-            
-            // agentSOA->computeNextDesiredPosition();
-
-            // for (size_t i = 0; i < agentSOA->size; i+=4) {
-            //     __m128 dX, dY;
-            //     dX = _mm_load_ps(&agentSOA->desiredXs[i]);
-            //     dY = _mm_load_ps(&agentSOA->desiredYs[i]);
-
-            //     // set its position to the calculated desired one
-            //     _mm_store_ps(&agentSOA->xs[i], dX);
-            //     _mm_store_ps(&agentSOA->ys[i], dY);
-            // }
 
             agentSOA->computeNextDesiredPositionAndMove();
             float* xs = agentSOA->xs, *ys = agentSOA->ys;
