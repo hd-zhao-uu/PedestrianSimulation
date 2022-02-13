@@ -29,6 +29,7 @@ Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
     currs = (int*)_mm_malloc(sizeof(int) * soaSize, mAlignment);
 
     // init values
+    #pragma omp parallel for shared(agents,xs,ys,desiredXs,desiredYs,waypoints,currs) num_threads(8) schedule(static)
     for (size_t i = 0; i < size; i++) {
         xs[i] = agents[i]->getX();
         ys[i] = agents[i]->getY();
@@ -54,9 +55,14 @@ Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
     }
 }
 
+void Ped::TagentSOA::setThreads(const int threadNum) {
+    this->threadNum = threadNum;
+}
+
 void Ped::TagentSOA::getNextDestination() {
     Ped::Twaypoint* nextDestination = NULL;
 
+    #pragma omp parallel for shared(destXs,destYs,xs,ys,currs,destRs,waypoints) num_threads(threadNum) schedule(static)
     for (int i = 0; i < size; i++) {
         bool agentReachedDestination = false;
 
@@ -82,6 +88,7 @@ void Ped::TagentSOA::computeNextDesiredPosition() {
     // SIMD
     this->getNextDestination();
 
+    #pragma omp parallel for shared(destXs,destYs,xs,ys,desiredXs,desiredYs) num_threads(threadNum) schedule(static)
     for (size_t i = 0; i < size; i += 4) {
 
         __m128 destX, destY;
@@ -113,6 +120,7 @@ void Ped::TagentSOA::computeNextDesiredPositionAndMove() {
     // SIMD
     this->getNextDestination();
 
+    #pragma omp parallel for shared(destXs,destYs,xs,ys,desiredXs,desiredYs) num_threads(threadNum) schedule(static)
     for (size_t i = 0; i < size; i += 4) {
 
         __m128 destX, destY;
@@ -141,4 +149,20 @@ void Ped::TagentSOA::computeNextDesiredPositionAndMove() {
         _mm_store_ps(&this->xs[i], desiredX);
         _mm_store_ps(&this->ys[i], desiredY);
     }
+}
+
+
+Ped::TagentSOA::~TagentSOA() {
+    _mm_free(xs);
+    _mm_free(ys);
+
+    _mm_free(desiredXs);
+    _mm_free(desiredYs);
+
+    _mm_free(destXs);
+    _mm_free(destYs);
+    _mm_free(destRs);
+
+    _mm_free(currs);
+
 }

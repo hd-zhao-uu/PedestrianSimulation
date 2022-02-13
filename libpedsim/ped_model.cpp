@@ -43,31 +43,6 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     setupHeatmapSeq();
 }
 
-// Utilities for Assignment 1
-// void a1Move (Ped::Tagent* agent) {
-// 	// retrieve the agent and calculate its next desired position
-// 	agent->computeNextDesiredPosition();
-
-// 	int dX = agent->getDesiredX(), dY = agent->getDesiredY();
-// 	// set its position to the calculated desired one
-// 	agent->setX(dX);
-// 	agent->setY(dY);
-// };
-void pFunc(int tId, int start, int end, std::vector<Ped::Tagent*>& agents) {
-    // printf("thread= %d, start=%d, end=%d\n", tId, start, end);
-    for (int i = start; i <= end; i++) {
-        // a1Move(agent[i]);
-        // retrieve the agent and calculate its next desired position
-        Ped::Tagent* agent = agents[i];
-        agent->computeNextDesiredPosition();
-
-        int dX = agent->getDesiredX(), dY = agent->getDesiredY();
-        // set its position to the calculated desired one
-        agent->setX(dX);
-        agent->setY(dY);
-    }
-};
-
 void Ped::Model::tick() {
     // EDIT HERE FOR ASSIGNMENT 1
     auto a1Move = [](Ped::Tagent* agent) {
@@ -81,29 +56,30 @@ void Ped::Model::tick() {
     };
 
     // lambda function for threads
-    // auto pFunc = [&](int tId, int start, int end) {
-    // 	printf("thread= %d, start=%d, end=%d\n", tId, start, end);
-    // 	for(int i = start; i <= end; i++) {
-    // 		// a1Move(agent[i]);
-    // 		a1Move(agents[i]);
-    //  	}
-    // };
+    auto pFunc = [&](int tId, int start, int end,
+                     std::vector<Ped::Tagent*>& agents) {
+        for (int i = start; i <= end; i++) {
+            // retrieve the agent and calculate its next desired position
+            Ped::Tagent* agent = agents[i];
+            agent->computeNextDesiredPosition();
+
+            int dX = agent->getDesiredX(), dY = agent->getDesiredY();
+            // set its position to the calculated desired one
+            agent->setX(dX);
+            agent->setY(dY);
+        }
+    };
 
     int agentSize = agents.size();
     int threadNum = getThreadNum();
     switch (implementation) {
         case SEQ: {
-            // std::cout << "[SERIAL]" << std::endl;
             for (int i = 0; i < agentSize; i++) {
-                // Ped::Tagent* agent = agents[i];
-                // a1Move(agent);
                 a1Move(agents[i]);
             }
         } break;
+
         case PTHREAD: {
-            // std::cout << "[USING PTHREADS]" << std::endl;
-            // printf("thread: %d\n", threadNum);
-            // printf("Agent size: %d\n", agentSize);
             int agentsPerThread = agentSize / threadNum;
             int agentLeft = agentSize % threadNum;
 
@@ -135,25 +111,23 @@ void Ped::Model::tick() {
         } break;
 
         case OMP: {
-            // std::cout << "[USING OPENMP]" << std::endl;
-            // printf("thread: %d\n", threadNum);
             int i;
-            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
             for (i = 0; i < agentSize; i++) {
-                // int nthrds = omp_get_num_threads();
-                // printf("omp threads: %d\n", nthrds);
                 a1Move(agents[i]);
             }
 
         } break;
 
         case VECTOR: {
+            agentSOA->setThreads(threadNum);
 
             agentSOA->computeNextDesiredPositionAndMove();
-            float* xs = agentSOA->xs, *ys = agentSOA->ys;
+            float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
-            // For Painting
-            for(size_t i = 0; i < agents.size(); i++) {
+// For Painting
+#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            for (size_t i = 0; i < agents.size(); i++) {
                 agents[i]->setX(xs[i]);
                 agents[i]->setY(ys[i]);
             }

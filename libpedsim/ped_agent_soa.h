@@ -29,9 +29,11 @@ struct TagentSOA {
     int* currs;
     std::vector<std::vector<Ped::Twaypoint*> > waypoints;  
 
+    int threadNum = 1;
+    void setThreads(const int threadNum);
 
     TagentSOA(const std::vector<Ped::Tagent*>& agents);
-
+    ~TagentSOA();
 
     void getNextDestination();
 
