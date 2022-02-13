@@ -17,6 +17,7 @@
 
 #include "cuda_testkernel.h"
 #include "ped_agent_soa.h"
+#include "ped_agent_cuda.h"
 #include "ped_model.h"
 #include "ped_waypoint.h"
 
@@ -38,6 +39,7 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     this->implementation = implementation;
 
     agentSOA = new Ped::TagentSOA(agents);
+    agentCUDA = new Ped::TagentCUDA(agents);
 
     // Set up heatmap (relevant for Assignment 4)
     setupHeatmapSeq();
@@ -112,7 +114,7 @@ void Ped::Model::tick() {
 
         case OMP: {
             int i;
-#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
             for (i = 0; i < agentSize; i++) {
                 a1Move(agents[i]);
             }
@@ -125,14 +127,27 @@ void Ped::Model::tick() {
             agentSOA->computeNextDesiredPositionAndMove();
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
-// For Painting
-#pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            // For Painting
+            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
             for (size_t i = 0; i < agents.size(); i++) {
                 agents[i]->setX(xs[i]);
                 agents[i]->setY(ys[i]);
             }
 
         } break;
+
+        case CUDA: {
+            agentCUDA->computeAndMove();
+            float *xs = agentCUDA->xs, *ys = agentCUDA->ys;
+            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            for (size_t i = 0; i < agents.size(); i++) {
+                agents[i]->setX(xs[i]);
+                agents[i]->setY(ys[i]);
+            }
+
+
+        }
+        break;
 
         default:
             break;
@@ -221,4 +236,6 @@ Ped::Model::~Model() {
                   [](Ped::Tagent* agent) { delete agent; });
     std::for_each(destinations.begin(), destinations.end(),
                   [](Ped::Twaypoint* destination) { delete destination; });
+    delete agentSOA;
+    delete agentCUDA;
 }

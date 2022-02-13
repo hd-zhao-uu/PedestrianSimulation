@@ -17,6 +17,7 @@
 
 #include "ped_agent.h"
 #include "ped_agent_soa.h"
+#include "ped_agent_cuda.h"
 
 namespace Ped{
 	class Tagent;
@@ -64,7 +65,7 @@ namespace Ped{
 		// agents (Assignment 1)
 		IMPLEMENTATION implementation;
 
-		int threadNum;
+		int threadNum = 8;
 
 		// The agents in this scenario
 		std::vector<Tagent*> agents;
@@ -77,6 +78,7 @@ namespace Ped{
 
 
 		Ped::TagentSOA* agentSOA;
+		Ped::TagentCUDA* agentCUDA;
 
 
 		////////////
