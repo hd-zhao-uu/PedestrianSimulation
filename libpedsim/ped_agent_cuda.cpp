@@ -1,9 +1,8 @@
 #include "ped_agent_cuda.h"
 
-#include <cmath>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-
+#include <cmath>
 
 Ped::TagentCUDA::TagentCUDA(const std::vector<Ped::Tagent*>& agents) {
     /*
@@ -16,17 +15,16 @@ Ped::TagentCUDA::TagentCUDA(const std::vector<Ped::Tagent*>& agents) {
     this->soaSize = ceil((double)size / 4) * 4;
     // int soaSize = size;
 
-    xs = (float*) malloc(sizeof(float) * soaSize);
-    ys = (float*) malloc(sizeof(float) * soaSize);
-    desiredXs =  (float*) malloc(sizeof(float) * soaSize);
-    desiredYs = (float*) malloc(sizeof(float) * soaSize);
-    destXs = (float*) malloc(sizeof(float) * soaSize);
-    destYs = (float*) malloc(sizeof(float) * soaSize);
-    destRs = (float*) malloc(sizeof(float) * soaSize);
-    currs = (int*) malloc(sizeof(int) * soaSize);
-    
+    xs = (float*)malloc(sizeof(float) * soaSize);
+    ys = (float*)malloc(sizeof(float) * soaSize);
+    desiredXs = (float*)malloc(sizeof(float) * soaSize);
+    desiredYs = (float*)malloc(sizeof(float) * soaSize);
+    destXs = (float*)malloc(sizeof(float) * soaSize);
+    destYs = (float*)malloc(sizeof(float) * soaSize);
+    destRs = (float*)malloc(sizeof(float) * soaSize);
+    currs = (int*)malloc(sizeof(int) * soaSize);
+
     this->waypoints = std::vector<std::vector<Twaypoint*>>(soaSize);
-    
 
     // allocate on device
     cudaMalloc(&xsDevice, sizeof(float) * soaSize);
@@ -78,17 +76,14 @@ void Ped::TagentCUDA::getNextDestination() {
 void Ped::TagentCUDA::copyDataToDevice() {
     size_t bytes = sizeof(float) * soaSize;
     // copy host data to device
-    cudaMemcpy(xsDevice, xs,bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(ysDevice, ys,bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(xsDevice, xs, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(ysDevice, ys, bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(destXsDevice, destXs, bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(destYsDevice, destYs, bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(destRsDevice, destRs, bytes, cudaMemcpyHostToDevice);
 }
 
-
-
 Ped::TagentCUDA::~TagentCUDA() {
-
     free(xs);
     free(ys);
     free(desiredXs);
@@ -104,4 +99,3 @@ Ped::TagentCUDA::~TagentCUDA() {
     cudaFree(destYsDevice);
     cudaFree(destRsDevice);
 }
-

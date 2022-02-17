@@ -31,7 +31,7 @@ void Ped::TagentCUDA::computeAndMove() {
                                          this->destXsDevice, this->destYsDevice,
                                          this->destRsDevice, this->size);
     // copy results from device to host
-     size_t bytes = sizeof(float) * soaSize;
+    size_t bytes = sizeof(float) * soaSize;
     cudaMemcpy(xs, xsDevice, bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(ys, ysDevice, bytes, cudaMemcpyHostToDevice);
 }

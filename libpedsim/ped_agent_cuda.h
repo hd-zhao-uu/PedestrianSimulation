@@ -1,12 +1,12 @@
 #ifndef _ped_agent_cuda_soa_h_
 #define _ped_agent_cuda_soa_h_
 
-#include <vector>
-#include <deque>
-#include "ped_agent.h"
-#include "ped_waypoint.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <deque>
+#include <vector>
+#include "ped_agent.h"
+#include "ped_waypoint.h"
 
 using namespace std;
 
@@ -23,7 +23,7 @@ struct TagentCUDA {
     float *desiredXs, *desiredYs;
     float *destXs, *destYs, *destRs;
     int* currs;
-    std::vector<std::vector<Ped::Twaypoint*> > waypoints;  
+    std::vector<std::vector<Ped::Twaypoint*> > waypoints;
 
     // device
     float *xsDevice, *ysDevice;
@@ -36,8 +36,6 @@ struct TagentCUDA {
     void copyDataToDevice();
 
     void computeAndMove();
-
-    
 };
 
 }  // namespace Ped

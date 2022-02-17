@@ -23,39 +23,39 @@
 using namespace std;
 
 namespace Ped {
-	class LIBEXPORT Twaypoint {
-	public:
-		Twaypoint();
-		Twaypoint(double x, double y, double r);
-		virtual ~Twaypoint();
+class LIBEXPORT Twaypoint {
+   public:
+    Twaypoint();
+    Twaypoint(double x, double y, double r);
+    virtual ~Twaypoint();
 
-		// Sets the coordinates and the radius of this waypoint
-		void setx(double px) { x = px; };
-		void sety(double py) { y = py; };
-		void setr(double pr) { r = pr; };
+    // Sets the coordinates and the radius of this waypoint
+    void setx(double px) { x = px; };
+    void sety(double py) { y = py; };
+    void setr(double pr) { r = pr; };
 
-		int getid() const { return id; };
-		double getx() const { return x; };
-		double gety() const { return y; };
-		double getr() const { return r; };
+    int getid() const { return id; };
+    double getx() const { return x; };
+    double gety() const { return y; };
+    double getr() const { return r; };
 
-	protected:
-		// id incrementer, used for assigning unique ids
-		static int staticid;
+   protected:
+    // id incrementer, used for assigning unique ids
+    static int staticid;
 
-		// waypoint id
-		int id;
+    // waypoint id
+    int id;
 
-		// position of the waypoint
-		double x;
-		double y;
+    // position of the waypoint
+    double x;
+    double y;
 
-		// radius defines the area of this waypoint, i.e. a circular
-		// area with the middle point in (x,y).
-		// Any point within this area is considered to be belonging
-		// to this destination.
-		double r;
-	};
-}
+    // radius defines the area of this waypoint, i.e. a circular
+    // area with the middle point in (x,y).
+    // Any point within this area is considered to be belonging
+    // to this destination.
+    double r;
+};
+}  // namespace Ped
 
 #endif

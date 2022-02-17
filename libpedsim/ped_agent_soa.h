@@ -24,10 +24,10 @@ struct TagentSOA {
     float *destXs, *destYs, *destRs;
 
     // std::deque<Twaypoint*>* waypoints;
-    // std::vector<std::deque<Ped::Twaypoint*>> waypoints; 
+    // std::vector<std::deque<Ped::Twaypoint*>> waypoints;
 
     int* currs;
-    std::vector<std::vector<Ped::Twaypoint*> > waypoints;  
+    std::vector<std::vector<Ped::Twaypoint*> > waypoints;
 
     int threadNum = 1;
     void setThreads(const int threadNum);
