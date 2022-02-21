@@ -42,7 +42,10 @@ void Ped::Tagent::computeNextDesiredPosition() {
 }
 
 void Ped::Tagent::addWaypoint(Twaypoint* wp) {
-    waypoints.push_back(wp);
+    if (waypoints.size() == 0) {
+        destination = wp;
+    }
+    waypoints.push_back(*wp);
 }
 
 Ped::Twaypoint* Ped::Tagent::getNextDestination() {
@@ -57,18 +60,17 @@ Ped::Twaypoint* Ped::Tagent::getNextDestination() {
         agentReachedDestination = length < destination->getr();
     }
 
-    if ((agentReachedDestination || destination == NULL) &&
-        !waypoints.empty()) {
-        // Case 1: agent has reached destination (or has no current
-        // destination); get next destination if available
-        waypoints.push_back(destination);
-        nextDestination = waypoints.front();
-        waypoints.pop_front();
+    if ((agentReachedDestination || destination == NULL) && !waypoints.empty()) {
+        // Case 1: agent has reached destination (or has no current destination);
+        // get next destination if available
+        curr = (curr + 1) % waypoints.size();
+        nextDestination = &waypoints[curr];
     } else {
-        // Case 2: agent has not yet reached destination, continue to move
-        // towards current destination
+        // Case 2: agent has not yet reached destination, continue to move towards
+        // current destination
         nextDestination = destination;
     }
 
     return nextDestination;
+    
 }

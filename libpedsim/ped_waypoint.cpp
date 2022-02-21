@@ -18,4 +18,4 @@ Ped::Twaypoint::Twaypoint(double px, double py, double pr)
 // Constructor - sets the most basic parameters.
 Ped::Twaypoint::Twaypoint() : id(staticid++), x(0), y(0), r(1){};
 
-Ped::Twaypoint::~Twaypoint(){};
+// Ped::Twaypoint::~Twaypoint(){};

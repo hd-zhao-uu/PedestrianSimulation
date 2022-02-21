@@ -23,7 +23,7 @@ struct TagentCUDA {
     float *desiredXs, *desiredYs;
     float *destXs, *destYs, *destRs;
     int* currs;
-    std::vector<std::vector<Ped::Twaypoint*> > waypoints;
+    std::vector<std::vector<Ped::Twaypoint> > waypoints;
 
     // device
     float *xsDevice, *ysDevice;

@@ -44,13 +44,14 @@ namespace Ped {
 		// Position of agent defined by x and y
 		int getX() const { return x; };
 		int getY() const { return y; };
+		size_t getCurr() const {return curr;};
 
 		// Adds a new waypoint to reach for this agent
 		void addWaypoint(Twaypoint* wp);
 
 
 		Twaypoint* getDestination() const {return destination; };
-		std::deque<Twaypoint*> getWaypoints() const {return waypoints; };
+		std::vector<Twaypoint> getWaypoints() const {return waypoints; };
 
 
 	private:
@@ -71,7 +72,8 @@ namespace Ped {
 		Twaypoint* lastDestination;
 
 		// The queue of all destinations that this agent still has to visit
-		deque<Twaypoint*> waypoints;
+		std::vector<Twaypoint> waypoints;
+		std::size_t curr= 0;
 
 		// Internal init function 
 		void init(int posX, int posY);

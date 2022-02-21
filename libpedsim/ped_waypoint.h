@@ -27,7 +27,7 @@ class LIBEXPORT Twaypoint {
    public:
     Twaypoint();
     Twaypoint(double x, double y, double r);
-    virtual ~Twaypoint();
+    // virtual ~Twaypoint();
 
     // Sets the coordinates and the radius of this waypoint
     void setx(double px) { x = px; };

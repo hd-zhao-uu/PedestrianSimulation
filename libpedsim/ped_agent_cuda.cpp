@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <cmath>
+#include <cstdio>
 
 Ped::TagentCUDA::TagentCUDA(const std::vector<Ped::Tagent*>& agents) {
     /*
@@ -24,7 +25,7 @@ Ped::TagentCUDA::TagentCUDA(const std::vector<Ped::Tagent*>& agents) {
     destRs = (float*)malloc(sizeof(float) * soaSize);
     currs = (int*)malloc(sizeof(int) * soaSize);
 
-    this->waypoints = std::vector<std::vector<Twaypoint*>>(soaSize);
+    this->waypoints = std::vector<std::vector<Twaypoint>>(soaSize);
 
     // allocate on device
     cudaMalloc(&xsDevice, sizeof(float) * soaSize);
@@ -40,12 +41,15 @@ Ped::TagentCUDA::TagentCUDA(const std::vector<Ped::Tagent*>& agents) {
         ys[i] = agents[i]->getY();
         desiredXs[i] = agents[i]->getDesiredX();
         desiredYs[i] = agents[i]->getDesiredY();
+        destXs[i] = agents[i]->getDestination()->getx();
+        destYs[i] = agents[i]->getDestination()->gety();
+        destRs[i] = agents[i]->getDestination()->getr();
 
-        std::deque<Twaypoint*> tWaypoints = agents[i]->getWaypoints();
 
-        waypoints[i] =
-            std::vector<Twaypoint*>(tWaypoints.begin(), tWaypoints.end());
-        currs[i] = 0;
+        currs[i] = agents[i]->getCurr();
+        std::vector<Ped::Twaypoint> tWaypoints = agents[i]->getWaypoints();
+        waypoints[i] = std::vector<Ped::Twaypoint>(tWaypoints.begin(), tWaypoints.end());
+
     }
 }
 
@@ -64,11 +68,13 @@ void Ped::TagentCUDA::getNextDestination() {
         if (agentReachedDestination && !waypoints[i].empty()) {
             // agent has reached destination (or has no current destination);
             // get next destination if available
-            Ped::Twaypoint* dest = waypoints[i][currs[i]];
-            destXs[i] = dest->getx();
-            destYs[i] = dest->gety();
-            destRs[i] = dest->getr();
+            int s = waypoints[i].size();
             currs[i] = (currs[i] + 1) % waypoints[i].size();
+            Ped::Twaypoint dest = waypoints[i][currs[i]];
+            destXs[i] = dest.getx();
+            destYs[i] = dest.gety();
+            destRs[i] = dest.getr();
+            
         }
     }
 }

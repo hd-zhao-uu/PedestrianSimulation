@@ -38,9 +38,6 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     // Sets the chosen implemenation. Standard in the given code is SEQ
     this->implementation = implementation;
 
-    agentSOA = new Ped::TagentSOA(agents);
-    agentCUDA = new Ped::TagentCUDA(agents);
-
     // Set up heatmap (relevant for Assignment 4)
     setupHeatmapSeq();
 }
@@ -122,9 +119,20 @@ void Ped::Model::tick() {
         } break;
 
         case VECTOR: {
-            agentSOA->setThreads(threadNum);
+            if(!agentSOA) {
+                for(int i = 0; i < agents.size(); i++) {
+                    agents[i]->computeNextDesiredPosition();
 
-            agentSOA->computeNextDesiredPositionAndMove();
+                    int dX = agents[i]->getDesiredX(), dY = agents[i]->getDesiredY();
+                    // set its position to the calculated desired one
+                    agents[i]->setX(dX);
+                    agents[i]->setY(dY);
+                }
+                agentSOA = new Ped::TagentSOA(agents);
+
+            }
+            agentSOA->setThreads(threadNum);
+            agentSOA->computeNextDesiredPosition();
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
 // For Painting
@@ -137,8 +145,23 @@ void Ped::Model::tick() {
         } break;
 
         case CUDA: {
+           if(!agentCUDA) {
+                for(int i = 0; i < agents.size(); i++) {
+                    agents[i]->computeNextDesiredPosition();
+
+                    int dX = agents[i]->getDesiredX(), dY = agents[i]->getDesiredY();
+                    // set its position to the calculated desired one
+                    agents[i]->setX(dX);
+                    agents[i]->setY(dY);
+                }
+                agentCUDA = new Ped::TagentCUDA(agents);
+
+            }
+            
+            
             agentCUDA->computeAndMove();
             float *xs = agentCUDA->xs, *ys = agentCUDA->ys;
+
 #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
             for (size_t i = 0; i < agents.size(); i++) {
                 agents[i]->setX(xs[i]);
@@ -234,6 +257,8 @@ Ped::Model::~Model() {
                   [](Ped::Tagent* agent) { delete agent; });
     std::for_each(destinations.begin(), destinations.end(),
                   [](Ped::Twaypoint* destination) { delete destination; });
-    delete agentSOA;
-    delete agentCUDA;
+    if(agentSOA != nullptr)
+        delete agentSOA;
+    if(agentCUDA != nullptr)
+        delete agentCUDA;
 }

@@ -74,8 +74,8 @@ class Model {
     // Moves an agent towards its next position
     void move(Ped::Tagent* agent);
 
-    Ped::TagentSOA* agentSOA;
-    Ped::TagentCUDA* agentCUDA;
+    Ped::TagentSOA* agentSOA = nullptr;
+    Ped::TagentCUDA* agentCUDA = nullptr;
 
     ////////////
     /// Everything below here won't be relevant until Assignment 3

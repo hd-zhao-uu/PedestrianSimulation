@@ -27,7 +27,7 @@ struct TagentSOA {
     // std::vector<std::deque<Ped::Twaypoint*>> waypoints;
 
     int* currs;
-    std::vector<std::vector<Ped::Twaypoint*> > waypoints;
+    std::vector<std::vector<Ped::Twaypoint>> waypoints;
 
     int threadNum = 1;
     void setThreads(const int threadNum);
@@ -39,7 +39,6 @@ struct TagentSOA {
 
     void computeNextDesiredPosition();
 
-    void computeNextDesiredPositionAndMove();
 };
 
 }  // namespace Ped
