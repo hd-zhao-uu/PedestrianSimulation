@@ -39,6 +39,8 @@ struct TagentSOA {
 
     void computeNextDesiredPosition();
 
+    void computeAndMove();
+
 };
 
 }  // namespace Ped

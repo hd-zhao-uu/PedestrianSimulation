@@ -14,6 +14,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <atomic>
 
 #include "ped_agent.h"
 #include "ped_agent_cuda.h"
@@ -24,7 +25,7 @@ class Tagent;
 
 // The implementation modes for Assignment 1 + 2:
 // chooses which implementation to use for tick()
-enum IMPLEMENTATION { CUDA, VECTOR, OMP, PTHREAD, SEQ };
+enum IMPLEMENTATION { CUDA, VECTOR, OMP, PTHREAD, SEQ, REGION };
 
 class Model {
    public:
@@ -80,6 +81,11 @@ class Model {
     ////////////
     /// Everything below here won't be relevant until Assignment 3
     ///////////////////////////////////////////////
+    std::vector<int> agentsIdx;
+    void sortAgents();
+
+    std::vector<std::vector<int>> state;
+    void move(int& rStart, int& rEnd);
 
     // Returns the set of neighboring agents for the specified position
     set<const Ped::Tagent*> getNeighbors(int x, int y, int dist) const;

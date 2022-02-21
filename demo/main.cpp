@@ -68,7 +68,10 @@ int main(int argc, char*argv[]) {
 					impl = Ped::IMPLEMENTATION::VECTOR;
 				}else if(strcmp(argv[i], "CUDA") == 0) {
 					impl = Ped::IMPLEMENTATION::CUDA;
-				}else {
+				}else if(strcmp(argv[i], "REGION") == 0) {
+					impl = Ped::IMPLEMENTATION::REGION;
+				}
+				else {
 					cerr << "Unrecognized implementation "<< endl;
 					return 0;
 

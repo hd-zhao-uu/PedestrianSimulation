@@ -14,6 +14,9 @@
 #include <iostream>
 #include <stack>
 #include <thread>
+#include <cmath>
+#include <numeric>
+
 
 #include "cuda_testkernel.h"
 #include "ped_agent_cuda.h"
@@ -74,7 +77,9 @@ void Ped::Model::tick() {
     switch (implementation) {
         case SEQ: {
             for (int i = 0; i < agentSize; i++) {
-                a1Move(agents[i]);
+                // a1Move(agents[i]);
+                agents[i]->computeNextDesiredPosition();
+                move(agents[i]);
             }
         } break;
 
@@ -132,7 +137,7 @@ void Ped::Model::tick() {
 
             }
             agentSOA->setThreads(threadNum);
-            agentSOA->computeNextDesiredPosition();
+            agentSOA->computeAndMove();
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
 // For Painting
@@ -157,8 +162,7 @@ void Ped::Model::tick() {
                 agentCUDA = new Ped::TagentCUDA(agents);
 
             }
-            
-            
+               
             agentCUDA->computeAndMove();
             float *xs = agentCUDA->xs, *ys = agentCUDA->ys;
 
@@ -170,6 +174,57 @@ void Ped::Model::tick() {
 
         } break;
 
+        case REGION: {
+            if(!agentSOA) {
+                for(int i = 0; i < agents.size(); i++) {
+                    agents[i]->computeNextDesiredPosition();
+
+                    int dX = agents[i]->getDesiredX(), dY = agents[i]->getDesiredY();
+                    // set its position to the calculated desired one
+                    agents[i]->setX(dX);
+                    agents[i]->setY(dY);
+                }
+                agentSOA = new Ped::TagentSOA(agents);
+                sortAgents();
+                Ped::Tagent* minAgent = agents[agentsIdx[0]];
+                Ped::Tagent* maxAgent = agents[agentsIdx[agents.size()-1]]; 
+                printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
+                int stateX = ceil((double) maxAgent->getX() / 100) * 100, stateY = ceil((double) maxAgent->getY() / 100) * 100;
+                printf("stateX= %d, stateY = %d\n", stateX, stateY); 
+
+                // state board: -1 => no agent occupies, otherwise it records the occupier
+                state = std::vector<std::vector<int>>(stateX, std::vector<int>(stateY, -1));
+                for(int i = 0; i < agents.size(); i++) {
+                    int sx = agents[i]->getX(), sy = agents[i]->getY();
+                    state[sx][sy] = i;
+                }
+
+            }
+            agentSOA->setThreads(threadNum);
+            sortAgents();
+            agentSOA->computeNextDesiredPosition();
+
+            omp_set_num_threads(threadNum);
+            #pragma omp parallel
+            {
+                int agentsInRegion = ceil((double)agents.size() / threadNum);
+                int threadId = omp_get_thread_num();
+                int rStart = threadId * agentsInRegion;
+                int rEnd = rStart + agentsInRegion < agents.size() ? rStart + agentsInRegion : agents.size(); 
+                printf("agentsSize = %d, agentsInRegion= %d, thread = %d, start = %d, end = %d\n", agents.size(), agentsInRegion,  threadId, rStart, rEnd); 
+                move(rStart, rEnd);
+            }
+
+            float *xs = agentSOA->xs, *ys = agentSOA->ys;
+            #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
+            for (size_t i = 0; i < agents.size(); i++) {
+                agents[i]->setX(xs[i]);
+                agents[i]->setY(ys[i]);
+            }
+
+        }
+        break;
+
         default:
             break;
     }
@@ -179,6 +234,74 @@ void Ped::Model::tick() {
 /// Everything below here relevant for Assignment 3.
 /// Don't use this for Assignment 1!
 ///////////////////////////////////////////////
+
+void Ped::Model::sortAgents() {
+    agentsIdx = vector<int>(agents.size());
+    std::iota(agentsIdx.begin(), agentsIdx.end(), 0);
+
+    // get the sorted index
+    sort(agentsIdx.begin(), agentsIdx.end(), [=](const int& i, const int& j) -> bool {
+        if (agents[i]->getX() != agents[j]->getX()) return agents[i]->getX() < agents[j]->getX();
+        return agents[i]->getY() < agents[i]->getY();
+    });
+}
+
+void Ped::Model::move(int& rStart, int& rEnd) {
+    float rangeStart= agentSOA->xs[agentsIdx[rStart]];
+    float rangeEnd = agentSOA->xs[agentsIdx[rEnd]];
+
+    for(int i = rStart; i < rEnd; i++) {
+        int aId = agentsIdx[i];
+        int x = agentSOA->xs[aId];
+        int y = agentSOA->ys[aId];
+        int desiredX = agentSOA->desiredXs[aId];
+        int desiredY = agentSOA->desiredYs[aId];
+
+        // Compute the three alternative positions that would bring the agent
+        // closer to his desiredPosition, starting with the desiredPosition itself
+        auto pCandidates = std::vector<std::pair<int, int>>(3);
+        pCandidates[0] = std::make_pair(desiredX, desiredY);
+        auto diffX = desiredX - x;
+        auto diffY = desiredY - y;
+
+        if (diffX == 0 || diffY == 0) {
+            // Agent wants to walk straight to North, South, West or East
+            pCandidates[1] = std::make_pair(desiredX + diffY, desiredY + diffX);
+            pCandidates[2] = std::make_pair(desiredX - diffY, desiredY - diffX);
+        } else {
+            // Agent wants to walk diagonally
+            pCandidates[1] = std::make_pair(desiredX, y);
+            pCandidates[2] = std::make_pair(x, desiredY);
+        }
+
+        // Find the first empty alternative position
+        for(auto position: pCandidates) {
+            int px, py;
+            std::tie(px, py) = position;
+            
+            if(px > rangeStart && px < rangeEnd) {
+                // agents can move freely in the region
+                if(state[px][py] == -1) {
+                    state[px][py] = aId;
+                    state[x][y] = -1;
+                    agentSOA->xs[aId] = px;
+                    agentSOA->ys[aId] = py;
+                    break;
+                }
+            } else {
+                if(__sync_bool_compare_and_swap(&state[px][py], -1, aId)) {
+                    state[x][y] = -1; // agent leaves state[x][y]
+                    agentSOA->xs[aId] = px;
+                    agentSOA->ys[aId] = py;
+                    break;
+                }
+            }
+
+        } 
+    }
+    
+
+}
 
 // Moves the agent to the next desired position. If already taken, it will
 // be moved to a location close to it.

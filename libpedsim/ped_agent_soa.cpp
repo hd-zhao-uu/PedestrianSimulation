@@ -111,6 +111,43 @@ void Ped::TagentSOA::computeNextDesiredPosition() {
         _mm_store_ps(&this->desiredXs[i], desiredX);
         _mm_store_ps(&this->desiredYs[i], desiredY);
 
+        // _mm_store_ps(&this->xs[i], desiredX);
+        // _mm_store_ps(&this->ys[i], desiredY);
+    }
+}
+
+void Ped::TagentSOA::computeAndMove() {
+    // SIMD
+    this->getNextDestination();
+
+#pragma omp parallel for shared(destXs, destYs, xs, ys, desiredXs, desiredYs) \
+    num_threads(threadNum) schedule(static)
+    for (size_t i = 0; i < size; i += 4) {
+        __m128 destX, destY;
+        destX = _mm_load_ps(&this->destXs[i]);
+        destY = _mm_load_ps(&this->destYs[i]);
+
+        __m128 x, y;
+        x = _mm_load_ps(&this->xs[i]);
+        y = _mm_load_ps(&this->ys[i]);
+
+        __m128 diffX, diffY, len;
+        diffX = _mm_sub_ps(destX, x);
+        diffY = _mm_sub_ps(destY, y);
+        len = _mm_sqrt_ps(
+            _mm_add_ps(_mm_mul_ps(diffX, diffX), _mm_mul_ps(diffY, diffY)));
+
+        __m128 desiredX, desiredY;
+        desiredX = _mm_add_ps(x, _mm_div_ps(diffX, len));
+        desiredY = _mm_add_ps(y, _mm_div_ps(diffY, len));
+        desiredX = _mm_round_ps(desiredX,
+                                _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        desiredY = _mm_round_ps(desiredY,
+                                _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+
+        _mm_store_ps(&this->desiredXs[i], desiredX);
+        _mm_store_ps(&this->desiredYs[i], desiredY);
+
         _mm_store_ps(&this->xs[i], desiredX);
         _mm_store_ps(&this->ys[i], desiredY);
     }
