@@ -68,6 +68,8 @@ int main(int argc, char*argv[]) {
 					impl = Ped::IMPLEMENTATION::VECTOR;
 				}else if(strcmp(argv[i], "CUDA") == 0) {
 					impl = Ped::IMPLEMENTATION::CUDA;
+				}else if(strcmp(argv[i], "TASK") == 0) {
+					impl = Ped::IMPLEMENTATION::TASK;
 				}else {
 					cerr << "Unrecognized implementation "<< endl;
 					return 0;
@@ -96,10 +98,10 @@ int main(int argc, char*argv[]) {
 		// Reading the scenario file and setting up the crowd simulation model
 		Ped::Model model;
 		ParseScenario parser(scenefile);
-		model.setup(parser.getAgents(), parser.getWaypoints(), Ped::SEQ);
+		model.setup(parser.getAgents(), parser.getWaypoints(), impl);
 
 		// Default number of steps to simulate. Feel free to change this.
-		const int maxNumberOfStepsToSimulate = 100000;
+		const int maxNumberOfStepsToSimulate = 1000;
 		
 				
 

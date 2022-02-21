@@ -24,7 +24,7 @@ class Tagent;
 
 // The implementation modes for Assignment 1 + 2:
 // chooses which implementation to use for tick()
-enum IMPLEMENTATION { CUDA, VECTOR, OMP, PTHREAD, SEQ };
+enum IMPLEMENTATION { TASK, CUDA, VECTOR, OMP, PTHREAD, SEQ };
 
 class Model {
    public:
@@ -67,12 +67,20 @@ class Model {
 
     // The agents in this scenario
     std::vector<Tagent*> agents;
+    std::vector<Tagent*> agent1;
+    std::vector<Tagent*> agent2;
+    std::vector<Tagent*> agent3;
+    std::vector<Tagent*> agent4;
+    std::vector<Tagent*> border1;
+    std::vector<Tagent*> border2;
+    std::vector<Tagent*> border3;
+    std::vector<Tagent*> border4;
 
     // The waypoints in this scenario
     std::vector<Twaypoint*> destinations;
 
     // Moves an agent towards its next position
-    void move(Ped::Tagent* agent);
+    void move(Ped::Tagent* agent, std::vector<Ped::Tagent *> agentVector, std::vector<Ped::Tagent *> tempVector);
 
     Ped::TagentSOA* agentSOA;
     Ped::TagentCUDA* agentCUDA;
@@ -82,8 +90,9 @@ class Model {
     ///////////////////////////////////////////////
 
     // Returns the set of neighboring agents for the specified position
-    set<const Ped::Tagent*> getNeighbors(int x, int y, int dist) const;
-
+    set<const Ped::Tagent*> getNeighbors(int x, int y, int dist, std::vector<Ped::Tagent *> agentVector, std::vector<Ped::Tagent *> borderVector) const;
+    void moveAgentList(Ped::Tagent *agent);
+    bool checkPosition(Ped::Tagent *agent);
     ////////////
     /// Everything below here won't be relevant until Assignment 4
     ///////////////////////////////////////////////

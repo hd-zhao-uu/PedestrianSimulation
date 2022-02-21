@@ -43,6 +43,33 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
 
     // Set up heatmap (relevant for Assignment 4)
     setupHeatmapSeq();
+
+    for (int i = 0; i < agents.size(); i++)
+    {
+        if (agents[i]->getX() < 80)
+	    {
+	        if (agents[i]->getY() < 60)
+	        {
+	            this->agent1.push_back(agents[i]);
+	        }
+	        else
+	        {
+	            this->agent2.push_back(agents[i]);
+	        }
+	    }
+        else
+	    {
+	        if (agents[i]->getY() < 60)
+	        {
+	            this->agent3.push_back(agents[i]);
+	        }
+	        else
+	        {
+	            this->agent4.push_back(agents[i]);
+	        }
+	    }
+    }
+
 }
 
 void Ped::Model::tick() {
@@ -76,9 +103,12 @@ void Ped::Model::tick() {
     int threadNum = getThreadNum();
     switch (implementation) {
         case SEQ: {
-            for (int i = 0; i < agentSize; i++) {
-                a1Move(agents[i]);
-            }
+            std::vector<Tagent *> emptyAgent;
+	        for (int i = 0; i < agents.size(); i++)
+	        {
+	            agents[i]->computeNextDesiredPosition();
+	            move(agents[i], agents, emptyAgent);
+	        }
         } break;
 
         case PTHREAD: {
@@ -147,11 +177,148 @@ void Ped::Model::tick() {
 
         } break;
 
-        default:
+        case TASK: {
+            omp_set_num_threads(threadNum);
+#pragma omp parallel
+{
+#pragma omp single nowait
+{
+#pragma omp task
+{
+	    for (int i = 0; i < this->agent1.size(); i++){
+		    this->agent1[i]->computeNextDesiredPosition();
+		    if(checkPosition(agent1[i])){
+		      this->border1.push_back(this->agent1[i]);
+		      this->agent1.erase(this->agent1.begin() + i);
+		      i--;
+		    }
+		    else {
+		      move(this->agent1[i], this->agent1, this->border1);
+		    }
+		}
+}
+#pragma omp task
+{
+	    for (int i = 0; i < this->agent2.size(); i++){
+		    this->agent2[i]->computeNextDesiredPosition();
+		    if(checkPosition(agent2[i])){
+		      this->border2.push_back(this->agent2[i]);
+		      this->agent2.erase(this->agent2.begin() + i);
+		      i--;
+		    }
+		    else {
+		      move(this->agent2[i], this->agent2, this->border2);
+		    }
+		}
+}
+#pragma omp task
+{
+	    for (int i = 0; i < this->agent3.size(); i++){
+		    this->agent3[i]->computeNextDesiredPosition();
+		    if(checkPosition(agent3[i])){
+		      this->border3.push_back(this->agent3[i]);
+		      this->agent3.erase(this->agent3.begin() + i);
+		      i--;
+		    }
+		    else {
+		      move(this->agent3[i], this->agent3, this->border3);
+		    }
+		}
+}
+#pragma omp task
+{
+	    for (int i = 0; i < this->agent4.size(); i++){
+		    this->agent4[i]->computeNextDesiredPosition();
+		    if(checkPosition(agent4[i])){
+		      this->border4.push_back(this->agent4[i]);
+		      this->agent4.erase(this->agent4.begin() + i);
+		      i--;
+		    }
+		    else {
+		      move(this->agent4[i], this->agent4, this->border4);
+		    }
+		}
+}
+
+
+
+}
+#pragma omp taskwait
+
+}       
+
+    int largestArray = (int)std::max(std::max(this->border1.size(),this->border2.size()),std::max(this->border3.size(),this->border4.size()));
+
+	std::vector<Ped::Tagent *> allBorderPoints;
+	allBorderPoints.insert(allBorderPoints.end(), this->border1.begin(), this->border1.end());
+	allBorderPoints.insert(allBorderPoints.end(), this->border2.begin(), this->border2.end());
+	allBorderPoints.insert(allBorderPoints.end(), this->border3.begin(), this->border3.end());
+	allBorderPoints.insert(allBorderPoints.end(), this->border4.begin(), this->border4.end());
+
+	for(int i=0; i < largestArray; i++){
+        if(i < this->border1.size()){
+            move(this->border1[i], this->agent1, allBorderPoints);
+            moveAgentList(this->border1[i]);
+	    }
+        if(i < this->border2.size()){
+            move(this->border2[i], this->agent2, allBorderPoints);
+            moveAgentList(this->border2[i]);
+	    }
+        if(i < this->border3.size()){
+            move(this->border3[i], this->agent3, allBorderPoints);
+            moveAgentList(this->border3[i]);
+	    }
+        if(i < this->border4.size()){
+            move(this->border4[i], this->agent4, allBorderPoints);
+            moveAgentList(this->border4[i]);
+	    }   
+	}
+    this->border1.clear();
+	this->border2.clear();
+	this->border3.clear();
+	this->border4.clear();
+    
+	break;
+}
+    default:
             break;
     }
 }
 
+void Ped::Model::moveAgentList(Ped::Tagent *agent)
+{
+    if (agent->getX() < 80){
+        if (agent->getY() < 60){
+	        agent1.push_back(std::move(agent));
+	}
+        else{
+	        agent2.push_back(std::move(agent));
+	    }
+    }
+    else if (agent->getX() >= 80){
+        if (agent->getY() < 60){
+	        agent3.push_back(std::move(agent));
+	    }
+        else{
+	        agent4.push_back(std::move(agent));
+	    }
+    }
+}
+
+bool Ped::Model::checkPosition(Ped::Tagent *agent)
+{
+  if((agent->getDesiredX() >= 78 and
+      agent->getDesiredX() < 82) or
+     (agent->getDesiredY() >= 58 and
+      agent->getDesiredY() < 62))
+    {
+      return true;
+    }
+  else
+    {
+      return false;
+    }
+}
 ////////////
 /// Everything below here relevant for Assignment 3.
 /// Don't use this for Assignment 1!
@@ -159,10 +326,10 @@ void Ped::Model::tick() {
 
 // Moves the agent to the next desired position. If already taken, it will
 // be moved to a location close to it.
-void Ped::Model::move(Ped::Tagent* agent) {
+void Ped::Model::move(Ped::Tagent* agent, std::vector<Ped::Tagent *> agentVector, std::vector<Ped::Tagent *> borderVector) {
     // Search for neighboring agents
     set<const Ped::Tagent*> neighbors =
-        getNeighbors(agent->getX(), agent->getY(), 2);
+        getNeighbors(agent->getX(), agent->getY(), 2, agentVector, borderVector);
 
     // Retrieve their positions
     std::vector<std::pair<int, int> > takenPositions;
@@ -218,11 +385,38 @@ void Ped::Model::move(Ped::Tagent* agent) {
 /// \param   y the y coordinate
 /// \param   dist the distance around x/y that will be searched for agents
 /// (search field is a square in the current implementation)
-set<const Ped::Tagent*> Ped::Model::getNeighbors(int x, int y, int dist) const {
+set<const Ped::Tagent*> Ped::Model::getNeighbors(int x, int y, int dist, std::vector<Ped::Tagent *> agentVector, std::vector<Ped::Tagent *> borderVector) const{
     // create the output list
     // ( It would be better to include only the agents close by, but this
     // programmer is lazy.)
-    return set<const Ped::Tagent*>(agents.begin(), agents.end());
+    std::vector<Ped::Tagent *> allNeighbors(0);
+
+    for (int i = 0; i < agentVector.size(); i++){
+        int aX = agentVector[i]->getX();
+        int aY = agentVector[i]->getY();
+
+        if (aX < (x + dist) &&
+	    aX > (x - dist) &&
+	    aY < (y + dist) &&
+	    aY > (y - dist) &&
+	    (aX != x or aY != y)){
+	        allNeighbors.push_back(agentVector[i]);
+	    }
+    }
+
+    for (int i = 0; i < borderVector.size(); i++){
+        int aX = borderVector[i]->getX();
+        int aY = borderVector[i]->getY();
+
+        if (aX < (x + dist) &&
+	    aX > (x - dist) &&
+	    aY < (y + dist) &&
+	    aY > (y - dist) &&
+	    (aX != x or aY != y)){
+	        allNeighbors.push_back(borderVector[i]);
+	    }
+    }
+    return set<const Ped::Tagent*>(allNeighbors.begin(), allNeighbors.end());
 }
 
 void Ped::Model::cleanup() {
