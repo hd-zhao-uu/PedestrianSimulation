@@ -16,6 +16,8 @@
 #include <thread>
 #include <cmath>
 #include <numeric>
+#include <algorithm>
+#include <cstdlib>
 
 
 #include "cuda_testkernel.h"
@@ -189,7 +191,7 @@ void Ped::Model::tick() {
                 Ped::Tagent* minAgent = agents[agentsIdx[0]];
                 Ped::Tagent* maxAgent = agents[agentsIdx[agents.size()-1]]; 
                 printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
-                int stateX = ceil((double) maxAgent->getX() / 100) * 100, stateY = ceil((double) maxAgent->getY() / 100) * 100;
+                int stateX = ceil((double) maxAgent->getX() / 100 + 1) * 100, stateY = ceil((double) maxAgent->getY() / 100 + 1) * 100;
                 printf("stateX= %d, stateY = %d\n", stateX, stateY); 
 
                 // state board: -1 => no agent occupies, otherwise it records the occupier
@@ -247,8 +249,13 @@ void Ped::Model::sortAgents() {
 }
 
 void Ped::Model::move(int& rStart, int& rEnd) {
+    int s = agentsIdx.size();
     float rangeStart= agentSOA->xs[agentsIdx[rStart]];
+    if(rEnd == agentsIdx.size()) rEnd = rEnd - 1;
     float rangeEnd = agentSOA->xs[agentsIdx[rEnd]];
+
+    std::srand(std::time(0));
+    random_shuffle(agentsIdx.begin() + rStart, agentsIdx.begin() + rEnd);
 
     for(int i = rStart; i < rEnd; i++) {
         int aId = agentsIdx[i];
