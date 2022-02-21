@@ -38,7 +38,6 @@ Ped::TagentSOA::TagentSOA(const std::vector<Ped::Tagent*>& agents) {
         destYs[i] = agents[i]->getDestination()->gety();
         destRs[i] = agents[i]->getDestination()->getr();
 
-
         currs[i] = agents[i]->getCurr();
         std::vector<Ped::Twaypoint> tWaypoints = agents[i]->getWaypoints();
         waypoints[i] = std::vector<Ped::Twaypoint>(tWaypoints.begin(), tWaypoints.end());
@@ -69,12 +68,12 @@ void Ped::TagentSOA::getNextDestination() {
             // agent has reached destination (or has no current destination);
             // get next destination if available
             int s = waypoints[i].size();
-            
+            currs[i] = (currs[i] + 1) % waypoints[i].size();
             Ped::Twaypoint dest = waypoints[i][currs[i]];
             destXs[i] = dest.getx();
             destYs[i] = dest.gety();
             destRs[i] = dest.getr();
-            currs[i] = (currs[i] + 1) % waypoints[i].size();
+            
             
         }
     }

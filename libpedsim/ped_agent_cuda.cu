@@ -9,7 +9,7 @@ __global__ void computeAndMoveCUDA(float* xsDevice,
                                    float* destYsDevice,
                                    float* destRsDevice,
                                    int size) {
-    int idx = blockIdx.x * blockDim.y * threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < size) {
         float diffX = destXsDevice[idx] - xsDevice[idx];
         float diffY = destYsDevice[idx] - ysDevice[idx];
@@ -32,6 +32,6 @@ void Ped::TagentCUDA::computeAndMove() {
                                          this->destRsDevice, this->size);
     // copy results from device to host
     size_t bytes = sizeof(float) * soaSize;
-    cudaMemcpy(xs, xsDevice, bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(ys, ysDevice, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(xs, xsDevice, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(ys, ysDevice, bytes, cudaMemcpyDeviceToHost);
 }
