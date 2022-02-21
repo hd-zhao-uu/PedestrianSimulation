@@ -191,14 +191,16 @@ void Ped::Model::tick() {
                 Ped::Tagent* minAgent = agents[agentsIdx[0]];
                 Ped::Tagent* maxAgent = agents[agentsIdx[agents.size()-1]]; 
                 printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
-                int stateX = ceil((double) maxAgent->getX() / 100 + 1) * 100, stateY = ceil((double) maxAgent->getY() / 100 + 1) * 100;
-                printf("stateX= %d, stateY = %d\n", stateX, stateY); 
+                int boardX = ceil((double) maxAgent->getX() / 100 + 3) * 100, boardY = ceil((double) maxAgent->getY() / 100 + 3) * 100;
+                printf("boardX= %d, boardY = %d\n", boardX, boardY); 
 
                 // state board: -1 => no agent occupies, otherwise it records the occupier
-                state = std::vector<std::vector<int>>(stateX, std::vector<int>(stateY, -1));
+                stateBoard = std::vector<std::vector<int>>(boardX, std::vector<int>(boardY, -1));
+                    
                 for(int i = 0; i < agents.size(); i++) {
                     int sx = agents[i]->getX(), sy = agents[i]->getY();
-                    state[sx][sy] = i;
+                    // stateBoard[sx][sy] = i;
+                    stateUnit(sx,sy) = i;
                 }
 
             }
@@ -288,16 +290,26 @@ void Ped::Model::move(int& rStart, int& rEnd) {
             
             if(px > rangeStart && px < rangeEnd) {
                 // agents can move freely in the region
-                if(state[px][py] == -1) {
-                    state[px][py] = aId;
-                    state[x][y] = -1;
+                // if(stateBoard[px][py] == -1) {
+                //     stateBoard[px][py] = aId;
+                //     stateBoard[x][y] = -1;
+                //     agentSOA->xs[aId] = px;
+                //     agentSOA->ys[aId] = py;
+                //     break;
+                // }
+                // agents can move freely in the region
+                if(stateUnit(px,py) == -1) {
+                    stateUnit(px,py) = aId;
+                    stateUnit(px,py) = -1;
                     agentSOA->xs[aId] = px;
                     agentSOA->ys[aId] = py;
                     break;
                 }
             } else {
-                if(__sync_bool_compare_and_swap(&state[px][py], -1, aId)) {
-                    state[x][y] = -1; // agent leaves state[x][y]
+                // if(__sync_bool_compare_and_swap(&stateBoard[px][py], -1, aId)) {
+                if(__sync_bool_compare_and_swap(&stateUnit(px,py), -1, aId)) {
+                    // stateBoard[x][y] = -1; // agent leaves (x,y)
+                    stateUnit(x, y) = -1;
                     agentSOA->xs[aId] = px;
                     agentSOA->ys[aId] = py;
                     break;
