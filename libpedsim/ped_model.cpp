@@ -190,9 +190,12 @@ void Ped::Model::tick() {
                 sortAgents();
                 Ped::Tagent* minAgent = agents[agentsIdx[0]];
                 Ped::Tagent* maxAgent = agents[agentsIdx[agents.size()-1]]; 
-                printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
-                int boardX = ceil((double) maxAgent->getX() / 100 + 3) * 100, boardY = ceil((double) maxAgent->getY() / 100 + 3) * 100;
-                printf("boardX= %d, boardY = %d\n", boardX, boardY); 
+                
+                int boardX = ceil((double) maxAgent->getX() / 100 + 3) * 100;
+                int boardY = ceil((double) maxAgent->getY() / 100 + 3) * 100;
+
+                // printf("boardX= %d, boardY = %d\n", boardX, boardY); 
+                // printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
 
                 // state board: -1 => no agent occupies, otherwise it records the occupier
                 stateBoard = std::vector<std::vector<int>>(boardX, std::vector<int>(boardY, -1));
@@ -215,7 +218,7 @@ void Ped::Model::tick() {
                 int threadId = omp_get_thread_num();
                 int rStart = threadId * agentsInRegion;
                 int rEnd = rStart + agentsInRegion < agents.size() ? rStart + agentsInRegion : agents.size(); 
-                printf("agentsSize = %d, agentsInRegion= %d, thread = %d, start = %d, end = %d\n", agents.size(), agentsInRegion,  threadId, rStart, rEnd); 
+                // printf("agentsSize = %d, agentsInRegion= %d, thread = %d, start = %d, end = %d\n", agents.size(), agentsInRegion,  threadId, rStart, rEnd); 
                 move(rStart, rEnd);
             }
 
@@ -247,14 +250,18 @@ void Ped::Model::sortAgents() {
     sort(agentsIdx.begin(), agentsIdx.end(), [=](const int& i, const int& j) -> bool {
         if (agents[i]->getX() != agents[j]->getX()) return agents[i]->getX() < agents[j]->getX();
         return agents[i]->getY() < agents[i]->getY();
+        // return agents[i]->getX() < agents[j]->getX();
     });
 }
 
 void Ped::Model::move(int& rStart, int& rEnd) {
     int s = agentsIdx.size();
-    float rangeStart= agentSOA->xs[agentsIdx[rStart]];
+    float rangeXStart= agentSOA->xs[agentsIdx[rStart]];
     if(rEnd == agentsIdx.size()) rEnd = rEnd - 1;
-    float rangeEnd = agentSOA->xs[agentsIdx[rEnd]];
+    float rangeXEnd = agentSOA->xs[agentsIdx[rEnd]];
+
+    float rangeYStart = agentSOA->ys[agentsIdx[rStart]];
+    float rangeYEnd = agentSOA->ys[agentsIdx[rEnd]];
 
     std::srand(std::time(0));
     random_shuffle(agentsIdx.begin() + rStart, agentsIdx.begin() + rEnd);
@@ -287,33 +294,33 @@ void Ped::Model::move(int& rStart, int& rEnd) {
         for(auto position: pCandidates) {
             int px, py;
             std::tie(px, py) = position;
-            
-            if(px > rangeStart && px < rangeEnd) {
-                // agents can move freely in the region
-                // if(stateBoard[px][py] == -1) {
-                //     stateBoard[px][py] = aId;
-                //     stateBoard[x][y] = -1;
-                //     agentSOA->xs[aId] = px;
-                //     agentSOA->ys[aId] = py;
-                //     break;
-                // }
+
+            bool isInRegion = px > rangeXStart && px < rangeYEnd
+                            && py > rangeXStart && py < rangeYEnd;
+            if(isInRegion) {
                 // agents can move freely in the region
                 if(stateUnit(px,py) == -1) {
                     stateUnit(px,py) = aId;
-                    stateUnit(px,py) = -1;
+                    stateUnit(x,y) = -1;
                     agentSOA->xs[aId] = px;
                     agentSOA->ys[aId] = py;
                     break;
                 }
             } else {
-                // if(__sync_bool_compare_and_swap(&stateBoard[px][py], -1, aId)) {
-                if(__sync_bool_compare_and_swap(&stateUnit(px,py), -1, aId)) {
-                    // stateBoard[x][y] = -1; // agent leaves (x,y)
-                    stateUnit(x, y) = -1;
-                    agentSOA->xs[aId] = px;
-                    agentSOA->ys[aId] = py;
-                    break;
-                }
+                // int chance = 1;
+                // while(chance) {
+                    
+                    if(__sync_bool_compare_and_swap(&stateUnit(px,py), -1, aId)) {
+                        if( __sync_bool_compare_and_swap(&stateUnit(x, y), aId, -1)) {
+                        
+                            agentSOA->xs[aId] = px;
+                            agentSOA->ys[aId] = py;
+                            break;
+                        }
+                    }
+                //     chance --;
+                // }
+                
             }
 
         } 

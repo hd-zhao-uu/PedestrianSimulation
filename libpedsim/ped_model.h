@@ -84,13 +84,13 @@ class Model {
     std::vector<int> agentsIdx;
     void sortAgents();
 
-    int offsetX = 100;
+    int offsetX = 50;
     int offsetY = 50;
     
     std::vector<std::vector<int>> stateBoard;
 
     int& stateUnit(int x, int y) {
-        return stateBoard[x+offsetX][y+offsetY];
+        return stateBoard[x + this->offsetX][y + this->offsetY];
     }
 
     void move(int& rStart, int& rEnd);
