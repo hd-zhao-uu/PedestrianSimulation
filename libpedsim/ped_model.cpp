@@ -42,8 +42,13 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     this->implementation = implementation;
 
     // Set up heatmap (relevant for Assignment 4)
-    setupHeatmapSeq();
+    if(implementation == Ped::IMPLEMENTATION::SEQ) 
+        setupHeatmapSeq();
+    else 
+      setupHeatmapCUDA();
+
 }
+
 
 void Ped::Model::tick() {
     // EDIT HERE FOR ASSIGNMENT 1
@@ -139,6 +144,7 @@ void Ped::Model::tick() {
             }
             agentSOA->setThreads(threadNum);
             agentSOA->computeAndMove();
+            updateHeatmapCUDA();
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
 // For Painting
@@ -213,6 +219,7 @@ void Ped::Model::tick() {
 
             sortAgents();
             agentSOA->computeNextDesiredPosition();
+            updateHeatmapCUDA();
 
             omp_set_num_threads(threadNum);
 #pragma omp parallel

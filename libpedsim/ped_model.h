@@ -11,10 +11,10 @@
 #ifndef _ped_model_h_
 #define _ped_model_h_
 
+#include <atomic>
 #include <map>
 #include <set>
 #include <vector>
-#include <atomic>
 
 #include "ped_agent.h"
 #include "ped_agent_cuda.h"
@@ -86,7 +86,7 @@ class Model {
 
     int offsetX = 50;
     int offsetY = 50;
-    
+
     std::vector<std::vector<int>> stateBoard;
 
     int& stateUnit(int x, int y) {
@@ -115,8 +115,13 @@ class Model {
     // The final heatmap: blurred and scaled to fit the view
     int** blurred_heatmap;
 
+    float *desiredXs, *desiredYs;
+
     void setupHeatmapSeq();
     void updateHeatmapSeq();
+
+    void setupHeatmapCUDA();
+    void updateHeatmapCUDA();
 };
 }  // namespace Ped
 #endif
