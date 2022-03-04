@@ -192,8 +192,8 @@ void Ped::Model::tick() {
                 // Ped::Tagent* minAgent = agents[agentsIdx[0]];
                 Ped::Tagent* maxAgent = agents[agentsIdx[agents.size() - 1]];
 
-                int boardX = ceil((double)maxAgent->getX() / 100 + 3) * 100;
-                int boardY = ceil((double)maxAgent->getY() / 100 + 3) * 100;
+                int boardX = ceil((double)maxAgent->getX() / 100 + 2) * 100;
+                int boardY = ceil((double)maxAgent->getY() / 100 + 2) * 100;
 
                 // printf("boardX= %d, boardY = %d\n", boardX, boardY);
                 // printf("%d %d\n", maxAgent->getX(), maxAgent->getY());
@@ -210,7 +210,7 @@ void Ped::Model::tick() {
                 }
             }
 
-            sortAgents();
+            sortAgentsY();
             agentSOA->computeNextDesiredPosition();
 
             omp_set_num_threads(threadNum);
@@ -254,18 +254,30 @@ void Ped::Model::sortAgents() {
     // get the sorted index
     sort(agentsIdx.begin(), agentsIdx.end(),
          [=](const int& i, const int& j) -> bool {
-             // if (agents[i]->getX() != agents[j]->getX()) return
-             // agents[i]->getX() < agents[j]->getX(); return agents[i]->getY()
-             // < agents[i]->getY();
-             return agents[i]->getX() < agents[j]->getX();
+             if (agents[i]->getX() != agents[j]->getX()) 
+                return agents[i]->getX() < agents[j]->getX(); 
+             return agents[i]->getY() < agents[i]->getY();
+            // return agents[i]->getX() < agents[j]->getX();
          });
 }
 
+void Ped::Model::sortAgentsY() {
+    agentsIdx = vector<int>(agents.size());
+    std::iota(agentsIdx.begin(), agentsIdx.end(), 0);
+
+    // get the sorted index
+    sort(agentsIdx.begin(), agentsIdx.end(),
+         [=](const int& i, const int& j) -> bool {
+            return agents[i]->getY() < agents[j]->getY();
+         });
+}
+
+
 void Ped::Model::move(int& rStart, int& rEnd) {
-    float rangeXStart = agentSOA->xs[agentsIdx[rStart]];
+    float rangeYStart = agentSOA->ys[agentsIdx[rStart]];
     if (rEnd == agentsIdx.size())
         rEnd = rEnd - 1;
-    float rangeXEnd = agentSOA->xs[agentsIdx[rEnd]];
+    float rangeYEnd = agentSOA->ys[agentsIdx[rEnd]];
 
     // float rangeYStart = agentSOA->ys[agentsIdx[rStart]];
     // float rangeYEnd = agentSOA->ys[agentsIdx[rEnd]];
@@ -305,7 +317,8 @@ void Ped::Model::move(int& rStart, int& rEnd) {
             int px, py;
             std::tie(px, py) = position;
 
-            bool isInRegion = px > rangeXStart && px < rangeXEnd;
+            // bool isInRegion = px > rangeXStart && px < rangeXEnd;
+            bool isInRegion = py > rangeYStart && py < rangeYEnd;
             // && py > rangeYStart && py < rangeYEnd;
             if (isInRegion) {
                 // agents can move freely in the region

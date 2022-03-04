@@ -83,6 +83,7 @@ class Model {
     ///////////////////////////////////////////////
     std::vector<int> agentsIdx;
     void sortAgents();
+    void sortAgentsY();
 
     int offsetX = 50;
     int offsetY = 50;
