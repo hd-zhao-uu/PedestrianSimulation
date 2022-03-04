@@ -81,6 +81,7 @@ void Ped::Model::tick() {
                 agents[i]->computeNextDesiredPosition();
                 move(agents[i]);
             }
+            updateHeatmapSeq();
         } break;
 
         case PTHREAD: {
