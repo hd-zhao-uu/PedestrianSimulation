@@ -144,7 +144,7 @@ void Ped::Model::tick() {
             }
             agentSOA->setThreads(threadNum);
             agentSOA->computeAndMove();
-            updateHeatmapCUDA();
+
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 
 // For Painting
@@ -171,6 +171,7 @@ void Ped::Model::tick() {
             }
 
             agentCUDA->computeAndMove();
+           
             float *xs = agentCUDA->xs, *ys = agentCUDA->ys;
 
 #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
@@ -220,7 +221,6 @@ void Ped::Model::tick() {
             sortAgents();
             agentSOA->computeNextDesiredPosition();
             updateHeatmapCUDA();
-
             omp_set_num_threads(threadNum);
 #pragma omp parallel
             {
@@ -235,6 +235,7 @@ void Ped::Model::tick() {
                 // threadId, rStart, rEnd);
                 move(rStart, rEnd);
             }
+           
 
             float *xs = agentSOA->xs, *ys = agentSOA->ys;
 #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)

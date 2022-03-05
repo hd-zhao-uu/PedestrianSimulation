@@ -111,8 +111,8 @@ void Ped::TagentSOA::computeNextDesiredPosition() {
         _mm_store_ps(&this->desiredXs[i], desiredX);
         _mm_store_ps(&this->desiredYs[i], desiredY);
 
-        // _mm_store_ps(&this->xs[i], desiredX);
-        // _mm_store_ps(&this->ys[i], desiredY);
+        _mm_store_ps(&this->xs[i], desiredX);
+        _mm_store_ps(&this->ys[i], desiredY);
     }
 }
 

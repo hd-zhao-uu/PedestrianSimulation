@@ -115,7 +115,8 @@ class Model {
     // The final heatmap: blurred and scaled to fit the view
     int** blurred_heatmap;
 
-    float *desiredXs, *desiredYs;
+    float* desiredXs, *desiredYs;
+    float *hDesiredXs, *hDesiredYs;
 
     void setupHeatmapSeq();
     void updateHeatmapSeq();
