@@ -75,12 +75,38 @@ __global__ void filterHeatmap(int* d_scaled_heatmap,
                               int* d_blurred_heatmap) {
     /*
         Apply gaussian blur filter
+        Parallize: parallelize the outer 2 for-loops
     */
+    __shared__ int shared_shm [32][32];
+
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    shared_shm[threadIdx.y][threadIdx.x] = d_scaled_heatmap[y * SCALED_SIZE + x];
+    __syncthreads();
+
+    if(2 <= x && x < SCALED_SIZE - 2 && 2 <= y && y < SCALED_SIZE - 2) {
+        int sum = 0 ;
+        for (int k = -2; k < 3; k++) {
+            for (int l = -2; l < 3; l++) {
+                int shm_y = threadIdx.y + k;
+                int shm_x = threadIdx.x + l;
+                int v;
+                if(0 <= shm_y && shm_y < 32 && 0 <= shm_x && shm_x < 32)
+                    v = shared_shm[shm_y][shm_x];
+                else
+                    v = d_scaled_heatmap[(y + k) * SCALED_SIZE + x + l];
+                sum += d_w[(2 + k) * 5 + (2 + l)] * v;
+            }
+        }
+    int val = sum / 273;
+    d_blurred_heatmap[y * SCALED_SIZE + x] = 0x00FF0000 | val << 24;
+  }
+
     
 }
 
 
-__global__ void _filterHeatmap(int* d_scaled_heatmap,
+__global__ void __filterHeatmap(int* d_scaled_heatmap,
                               int* d_blurred_heatmap) {
     /*
         Apply gaussian blur filter
@@ -177,10 +203,13 @@ void Model::updateHeatmapCUDA() {
 
     // Scale Heatmap
     scaleHeatmap<<<hm_blocks, hm_bSize, 0, stream1>>>(d_heatmap, d_scaled_heatmap);
-    // _scaleHeatmap<<<1, SIZE, 0, stream1>>>(d_heatmap, d_scaled_heatmap);
 
-    // Scale Heatmap
-    _filterHeatmap<<<1, SIZE, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
+    // Filter Heatmap
+    dim3 filter_bSize(32, 32);
+    dim3 filter_blocks(SCALED_SIZE / filter_bSize.x, SCALED_SIZE / filter_bSize.y);
+
+    filterHeatmap<<<filter_blocks, filter_bSize, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
+    // __filterHeatmap<<<1, SIZE, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
 
     cudaMemcpyAsync(blurred_heatmap[0], d_blurred_heatmap, SCALED_SIZE*SCALED_SIZE*sizeof(int), cudaMemcpyDeviceToHost, stream1);
     

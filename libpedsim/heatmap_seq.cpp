@@ -98,7 +98,7 @@ void Ped::Model::updateHeatmapSeq()
 	};
 
 #define WEIGHTSUM 273
-	// Apply gaussian blurfilter		       
+	// Apply gaussian blur filter		       
 	for (int i = 2; i < SCALED_SIZE - 2; i++)
 	{
 		for (int j = 2; j < SCALED_SIZE - 2; j++)
