@@ -44,8 +44,11 @@ void Ped::Model::setup(std::vector<Ped::Tagent*> agentsInScenario,
     // Set up heatmap (relevant for Assignment 4)
     if(implementation == Ped::IMPLEMENTATION::SEQ) 
         setupHeatmapSeq();
-    else 
-      setupHeatmapCUDA();
+    else {
+       
+        setupHeatmapCUDA();
+    }
+
 
 }
 
@@ -187,8 +190,8 @@ void Ped::Model::tick() {
                 for (int i = 0; i < agents.size(); i++) {
                     agents[i]->computeNextDesiredPosition();
 
-                    int dX = agents[i]->getDesiredX(),
-                        dY = agents[i]->getDesiredY();
+                    int dX = agents[i]->getDesiredX();
+                    int dY = agents[i]->getDesiredY();
                     // set its position to the calculated desired one
                     agents[i]->setX(dX);
                     agents[i]->setY(dY);
@@ -220,7 +223,20 @@ void Ped::Model::tick() {
 
             sortAgents();
             agentSOA->computeNextDesiredPosition();
+
+            h_desiredXs = new float[agents.size()];
+            h_desiredYs = new float[agents.size()];
+            
+            for(int i = 0; i < agents.size(); i++) {
+                h_desiredXs[i] = agentSOA->desiredXs[i];
+                h_desiredYs[i] = agentSOA->desiredYs[i];
+            }
+
             updateHeatmapCUDA();
+
+            delete[] h_desiredXs;
+            delete[] h_desiredYs;
+
             omp_set_num_threads(threadNum);
 #pragma omp parallel
             {
