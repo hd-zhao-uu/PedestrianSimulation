@@ -56,10 +56,10 @@ MainWindow::MainWindow(const Ped::Model &pedModel) : model(pedModel)
 void MainWindow::paint() {
 
 	// Uncomment this to paint the heatmap (Assignment 4)
-	// const int heatmapSize = model.getHeatmapSize();
-	// QImage image((uchar*)*model.getHeatmap(), heatmapSize, heatmapSize, heatmapSize * sizeof(int), QImage::Format_ARGB32);
-	QImage image;
-	 pixmap->setPixmap(QPixmap::fromImage(image));
+	const int heatmapSize = model.getHeatmapSize();
+	QImage image((uchar*)*model.getHeatmap(), heatmapSize, heatmapSize, heatmapSize * sizeof(int), QImage::Format_ARGB32);
+	// QImage image;
+	pixmap->setPixmap(QPixmap::fromImage(image));
 
 	// Paint all agents: green, if the only agent on that position, otherwise red
 	std::set<std::tuple<int, int> > positionsTaken;

@@ -109,12 +109,22 @@ class Model {
 
     // The heatmap representing the density of agents
     int** heatmap;
+    int *d_heatmap;
 
     // The scaled heatmap that fits to the view
     int** scaled_heatmap;
+    int *d_scaled_heatmap;
 
     // The final heatmap: blurred and scaled to fit the view
     int** blurred_heatmap;
+    int *d_blurred_heatmap;
+
+    float *h_desiredXs;
+    float *h_desiredYs;
+    float *d_desiredXs;
+    float *d_desiredYs;
+    void setupHeatmapCUDA();
+    void updateHeatmapCUDA();
 
     void setupHeatmapSeq();
     void updateHeatmapSeq();
