@@ -12,7 +12,7 @@ __constant__ int d_w[5 * 5];
 namespace Ped {
 
 __global__ void heatFades(int* d_heatmap) {
-    long tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
     // heat fades
     d_heatmap[tid] = (int)round(d_heatmap[tid] * 0.80);
     // printf("[DEBUG] In heatFades Done\n");
@@ -26,22 +26,16 @@ __global__ void countHeatmap(int* d_heatmap,
     /*
         Count how many agents want to go to each location
     */
-    // printf("-S countHeatmap\n");
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
 
     // boundary check
     if (tid < agentSize) {
-        // printf("-IFS countHeatmap\n");
         int x = (int)d_desiredXs[tid];
         int y = (int)d_desiredYs[tid];
-        // printf("x=%d, y=%d\n", x, y);
         if (x < 0 || x >= SIZE || y < 0 || y >= SIZE)
             return;
         atomicAdd(&d_heatmap[y*SIZE + x], 40);
-        // printf("-IFE countHeatmap\n");
     }
-      
-   //  printf("-E countHeatmap\n");
 }
 
 __global__ void colorHeatmap(int* d_heatmap,
@@ -61,22 +55,32 @@ __global__ void colorHeatmap(int* d_heatmap,
 __global__ void scaleHeatmap(int* d_heatmap, int* d_scaled_heatmap) {
     /*
         Scale the data for visual representation
+        Parallize: each thread scale one heatmap pixel
     */
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    for (int x = 0; x < SIZE; x++) {
-        int value = d_heatmap[tid*SIZE + x];
-        for (int cellY = 0; cellY < CELLSIZE; cellY++) {
-            for (int cellX = 0; cellX < CELLSIZE; cellX++) {
-                d_scaled_heatmap[(tid * CELLSIZE + cellY) * SCALED_SIZE + (x * CELLSIZE + cellX)] =
-                    value;
-            }
-        }
-    }
+    int value = d_heatmap[tid];
+    int y = tid / SIZE;
+    int x = tid % SIZE;
+    for (int cellY = 0; cellY < CELLSIZE; cellY++) {
+		for (int cellX = 0; cellX < CELLSIZE; cellX++){
+            int s_y = y * CELLSIZE + cellY;
+            int s_x = x * CELLSIZE + cellX;
+			d_scaled_heatmap[s_y*SCALED_SIZE  + s_x] = value;
+		}
+	}
 
-    // printf("scaleHeatmap done\n");
 }
 
 __global__ void filterHeatmap(int* d_scaled_heatmap,
+                              int* d_blurred_heatmap) {
+    /*
+        Apply gaussian blur filter
+    */
+    
+}
+
+
+__global__ void _filterHeatmap(int* d_scaled_heatmap,
                               int* d_blurred_heatmap) {
     /*
         Apply gaussian blur filter
@@ -141,17 +145,18 @@ void Model::setupHeatmapCUDA() {
 	// Allocate the desired Xs Ys on device
 	cudaMalloc(&d_desiredXs, agents.size()*sizeof(float));
 	cudaMalloc(&d_desiredYs, agents.size()*sizeof(float));
-    printf("[DEBUG]  setup done!\n");
+    printf("[DEBUG] CUDA heatmap setup!\n");
 }
 
 void Model::updateHeatmapCUDA() {
 
     cudaStream_t stream1;
 	cudaStreamCreate(&stream1);
-
-
+    
     // heatmap fades
-    heatFades<<< SIZE, SIZE, 0, stream1>>>(d_heatmap);
+    dim3 hm_bSize = SIZE;
+    dim3 hm_blocks = SIZE;
+    heatFades<<<hm_blocks, hm_blocks, 0, stream1>>>(d_heatmap);
     
   
     // copy desiredXs and desiredYs to device
@@ -164,17 +169,18 @@ void Model::updateHeatmapCUDA() {
     
     
     // heatmap count
-    countHeatmap<<<CELLSIZE, SIZE, 0, stream1>>>(d_heatmap, d_desiredXs,
+    countHeatmap<<<hm_blocks, hm_bSize, 0, stream1>>>(d_heatmap, d_desiredXs,
                                                      d_desiredYs, agents.size());
 
-    // printf("[DEBUG] countHeatmap done!\n");
     // Color Heatmap
-    colorHeatmap<<<1, SIZE, 0, stream1>>>(d_heatmap, d_desiredXs, d_desiredYs, agents.size());
+    colorHeatmap<<<hm_blocks, hm_bSize, 0, stream1>>>(d_heatmap, d_desiredXs, d_desiredYs, agents.size());
 
     // Scale Heatmap
-    scaleHeatmap<<<1, SIZE, 0, stream1>>>(d_heatmap, d_scaled_heatmap);
+    scaleHeatmap<<<hm_blocks, hm_bSize, 0, stream1>>>(d_heatmap, d_scaled_heatmap);
+    // _scaleHeatmap<<<1, SIZE, 0, stream1>>>(d_heatmap, d_scaled_heatmap);
 
-    filterHeatmap<<<1, SIZE, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
+    // Scale Heatmap
+    _filterHeatmap<<<1, SIZE, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
 
     cudaMemcpyAsync(blurred_heatmap[0], d_blurred_heatmap, SCALED_SIZE*SCALED_SIZE*sizeof(int), cudaMemcpyDeviceToHost, stream1);
     
