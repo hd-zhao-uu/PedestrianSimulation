@@ -170,6 +170,19 @@ void Ped::Model::tick() {
             }
 
             agentCUDA->computeAndMove();
+            h_desiredXs = new float[agents.size()];
+            h_desiredYs = new float[agents.size()];
+            
+            for(int i = 0; i < agents.size(); i++) {
+                h_desiredXs[i] = (*agentCUDA).xs[i];
+                h_desiredYs[i] = (*agentCUDA).ys[i];
+            }
+
+            updateHeatmapCUDA();
+
+            delete[] h_desiredXs;
+            delete[] h_desiredYs;
+
             float *xs = agentCUDA->xs, *ys = agentCUDA->ys;
 
 #pragma omp parallel for shared(agents) num_threads(threadNum) schedule(static)
