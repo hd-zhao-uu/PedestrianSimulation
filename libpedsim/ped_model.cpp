@@ -442,4 +442,6 @@ Ped::Model::~Model() {
         delete agentSOA;
     if (agentCUDA != nullptr)
         delete agentCUDA;
+    
+    freeCUDAMem();
 }

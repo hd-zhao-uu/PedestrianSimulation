@@ -125,6 +125,7 @@ class Model {
     float *d_desiredYs;
     void setupHeatmapCUDA();
     void updateHeatmapCUDA();
+    void freeCUDAMem();
 
     void setupHeatmapSeq();
     void updateHeatmapSeq();
