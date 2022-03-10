@@ -129,6 +129,15 @@ class Model {
 
     void setupHeatmapSeq();
     void updateHeatmapSeq();
+
+public:
+    float hmCreationSeq = 0.0f;
+    float hmScalingSeq = 0.0f;
+    float hmFilterSeq = 0.0f;
+
+    float hmCreationSeqTotal = 0.0f;
+    float hmScalingSeqTotal = 0.0f;
+    float hmFilterSeqTotal = 0.0f;
 };
 }  // namespace Ped
 #endif
