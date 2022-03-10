@@ -168,11 +168,31 @@ namespace Ped {
         cudaStreamCreate(&dYStream);
         cudaStreamCreate(&mainStream);
 
-        
+
+        cudaEvent_t start[3], stop[3];
+        for(int i = 0; i != 3; ++i) {
+            cudaEventCreate(&start[i]);
+            cudaEventCreate(&stop[i]);
+        }
+
         // heatmap fades
+        cudaEventRecord(start[0], mainStream);
+
         dim3 hm_bSize = SIZE;
         dim3 hm_blocks = SIZE;
         heatFades<<<hm_blocks, hm_blocks, 0, mainStream>>>(d_heatmap);
+        
+        // heatmap count
+        countHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_desiredXs,
+                                                        d_desiredYs, agents.size());
+
+        // Color Heatmap
+        colorHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_desiredXs, d_desiredYs, agents.size());
+        
+
+        cudaEventRecord(stop[0], mainStream);
+        // cudaEventSynchronize(stop[0]);
+        // cudaEventElapsedTime(&hmCreationCUDA, start[0], stop[0]);
 
         // copy desiredXs and desiredYs to device
         cudaMemcpyAsync(d_desiredXs, h_desiredXs,
@@ -185,18 +205,19 @@ namespace Ped {
 
         cudaDeviceSynchronize();
 
-        
-        // heatmap count
-        countHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_desiredXs,
-                                                        d_desiredYs, agents.size());
-
-        // Color Heatmap
-        colorHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_desiredXs, d_desiredYs, agents.size());
 
         // Scale Heatmap
+        cudaEventRecord(start[1], mainStream);
+
         scaleHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_scaled_heatmap);
 
+        cudaEventRecord(stop[1], mainStream);
+        // cudaEventSynchronize(stop[1]);
+        // cudaEventElapsedTime(&hmScalingCUDA, start[1], stop[1]);
+
         // Filter Heatmap
+        cudaEventRecord(start[2], mainStream);
+
         dim3 filter_bSize(32, 32);
         dim3 filter_blocks(SCALED_SIZE / filter_bSize.x, SCALED_SIZE / filter_bSize.y);
 
@@ -204,12 +225,32 @@ namespace Ped {
         // __filterHeatmap<<<1, SIZE, 0, stream1>>>(d_scaled_heatmap, d_blurred_heatmap);
 
         cudaMemcpyAsync(blurred_heatmap[0], d_blurred_heatmap, SCALED_SIZE*SCALED_SIZE*sizeof(int), cudaMemcpyDeviceToHost, mainStream);
-        
+
+        cudaEventRecord(stop[2], mainStream);
+        // cudaEventSynchronize(stop[2]);
+        // cudaEventElapsedTime(&hmFilterCUDA, start[2], stop[2]);
+
+        cudaDeviceSynchronize();
+        cudaEventElapsedTime(&hmCreationCUDA, start[0], stop[0]);
+        cudaEventElapsedTime(&hmScalingCUDA, start[1], stop[1]);
+        cudaEventElapsedTime(&hmFilterCUDA, start[2], stop[2]);
+
 
         // destroy streams
         cudaStreamDestroy(dXStream);
         cudaStreamDestroy(dYStream);
         cudaStreamDestroy(mainStream);
+
+        for(int i = 0; i != 3; ++i) {
+            cudaEventDestroy(start[i]);
+            cudaEventDestroy(stop[i]);
+        }
+
+        hmCreationCUDATotal += hmCreationCUDA;
+        hmScalingCUDATotal += hmScalingCUDA;
+        hmScalingCUDATotal += hmScalingCUDA;
+
+        printf("[CUDA] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationCUDA, hmScalingCUDA, hmFilterCUDA);
         
     }
 

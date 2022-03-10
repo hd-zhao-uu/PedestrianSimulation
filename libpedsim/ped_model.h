@@ -138,6 +138,14 @@ public:
     float hmCreationSeqTotal = 0.0f;
     float hmScalingSeqTotal = 0.0f;
     float hmFilterSeqTotal = 0.0f;
+
+    float hmCreationCUDA = 0.0f;
+    float hmScalingCUDA = 0.0f;
+    float hmFilterCUDA = 0.0f;
+
+    float hmCreationCUDATotal = 0.0f;
+    float hmScalingCUDATotal = 0.0f;
+    float hmFilterCUDATotal = 0.0f;
 };
 }  // namespace Ped
 #endif
