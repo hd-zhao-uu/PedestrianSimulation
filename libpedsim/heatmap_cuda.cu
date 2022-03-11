@@ -180,7 +180,7 @@ namespace Ped {
 
         dim3 hm_bSize = SIZE;
         dim3 hm_blocks = SIZE;
-        heatFades<<<hm_blocks, hm_blocks, 0, mainStream>>>(d_heatmap);
+        heatFades<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap);
         
         // heatmap count
         countHeatmap<<<hm_blocks, hm_bSize, 0, mainStream>>>(d_heatmap, d_desiredXs,
