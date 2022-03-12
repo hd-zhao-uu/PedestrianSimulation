@@ -157,7 +157,6 @@ int main(int argc, char* argv[]) {
                 cudaFilterAvg =
                     model.hmFilterCUDATotal / maxNumberOfStepsToSimulate;
             }
-            std::cout << "\n\nSpeedup: " << fps_target / fps_seq << std::endl;
 
             if (implementation_to_test == Ped::IMPLEMENTATION::REGION) {
                 // double seqCreationAvg =
@@ -175,7 +174,6 @@ int main(int argc, char* argv[]) {
                 double creationSpeedup = seqCreationAvg / cudaCreationAvg;
                 double scalingSpeedup = seqCreationAvg / cudaScalingAvg ;
                 double filterSpeedup = seqFilterAvg / cudaFilterAvg;
-				printf("%lf \n", model.hmFilterSeqTotal);
 
                 printf("[Result]\n");
                 printf(
@@ -190,6 +188,8 @@ int main(int argc, char* argv[]) {
 					"\t[     Speedup     ] Creation: %lf, Scaling: %lf, filter: %lf\n",
                        creationSpeedup, scalingSpeedup, filterSpeedup);
             }
+
+			std::cout << "\n\nSpeedup: " << fps_target / fps_seq << std::endl;
 
         }
         // Graphics version
