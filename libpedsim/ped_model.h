@@ -135,17 +135,17 @@ public:
     float hmScalingSeq = 0.0f;
     float hmFilterSeq = 0.0f;
 
-    float hmCreationSeqTotal = 0.0f;
-    float hmScalingSeqTotal = 0.0f;
-    float hmFilterSeqTotal = 0.0f;
+    double hmCreationSeqTotal = 0.0;
+    double hmScalingSeqTotal = 0.0;
+    double hmFilterSeqTotal = 0.0;
 
     float hmCreationCUDA = 0.0f;
     float hmScalingCUDA = 0.0f;
     float hmFilterCUDA = 0.0f;
 
-    float hmCreationCUDATotal = 0.0f;
-    float hmScalingCUDATotal = 0.0f;
-    float hmFilterCUDATotal = 0.0f;
+    double hmCreationCUDATotal = 0.0;
+    double hmScalingCUDATotal = 0.0;
+    double hmFilterCUDATotal = 0.0;
 };
 }  // namespace Ped
 #endif

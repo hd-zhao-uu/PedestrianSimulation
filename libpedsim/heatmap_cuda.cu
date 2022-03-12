@@ -248,7 +248,7 @@ namespace Ped {
 
         hmCreationCUDATotal += hmCreationCUDA;
         hmScalingCUDATotal += hmScalingCUDA;
-        hmScalingCUDATotal += hmScalingCUDA;
+        hmFilterCUDATotal += hmFilterCUDA;
 
         printf("[CUDA] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationCUDA, hmScalingCUDA, hmFilterCUDA);
         

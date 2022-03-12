@@ -107,13 +107,15 @@ void Ped::Model::updateHeatmapSeq() {
 
     auto end = Time::now();
     hmCreationSeq = fms(scaleStart - createStart).count();
-	hmCreationSeqTotal += hmCreationSeq;
-    hmScalingSeq = fms(filterStart - scaleStart).count();
-	hmScalingSeqTotal += hmScalingSeq;
-    hmFilterSeq = fms(end - filterStart).count();
-	hmFilterSeqTotal += hmFilterSeq;
+	hmScalingSeq = fms(filterStart - scaleStart).count();
+	hmFilterSeq = fms(end - filterStart).count();
 
-    // printf("[Sequntial] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationSeq, hmScalingSeq, hmFilterSeq);
+    hmCreationSeqTotal += hmCreationSeq;
+    hmScalingSeqTotal += hmScalingSeq;
+	hmFilterSeqTotal += hmFilterSeq;
+    
+
+    printf("[Sequntial] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationSeq, hmScalingSeq, hmFilterSeq);
 }
 
 int Ped::Model::getHeatmapSize() const {
