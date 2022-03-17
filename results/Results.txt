@@ -1,0 +1,47 @@
+[hdzhao@s178 1DL550_Assignment]$ demo/demo --threads 8 --impl REGION --timing-mode scenario.xml
+thread 8
+impl 5
+Timing mode on
+Note: removed 22 duplicates from scenario.
+Cuda functionality test succeeded.
+{1,2,3,4,5} + {10,20,30,40,50} = {11,22,33,44,55}
+[DEBUG] CUDA heatmap setup!
+Note: removed 31 duplicates from scenario.
+Running reference version...
+[Sequential] Creation: 26.118153ms, Scaling: 158.185287ms, filter: 3106.156006ms
+[Sequential] Creation: 28.758051ms, Scaling: 125.943344ms, filter: 3099.507080ms
+[Sequential] Creation: 28.777702ms, Scaling: 134.103577ms, filter: 3073.958984ms
+[Sequential] Creation: 27.760302ms, Scaling: 110.236359ms, filter: 3077.124756ms
+[Sequential] Creation: 28.907562ms, Scaling: 120.900055ms, filter: 3057.783691ms
+[Sequential] Creation: 27.760309ms, Scaling: 110.878654ms, filter: 3044.872070ms
+[Sequential] Creation: 28.779284ms, Scaling: 133.882675ms, filter: 3074.145264ms
+[Sequential] Creation: 27.755749ms, Scaling: 110.272758ms, filter: 3045.249756ms
+[Sequential] Creation: 27.820724ms, Scaling: 110.449257ms, filter: 3041.398438ms
+[Sequential] Creation: 27.759180ms, Scaling: 110.311111ms, filter: 3041.773193ms
+
+
+Reference time: 33638 milliseconds, 0.297283 Frames Per Second.
+Note: removed 42 duplicates from scenario.
+[DEBUG] CUDA heatmap setup!
+Running target version...
+[CUDA] Creation: 0.192128ms, Scaling: 1.752640ms, filter: 85.014656ms
+[CUDA] Creation: 0.184096ms, Scaling: 1.749184ms, filter: 35.196320ms
+[CUDA] Creation: 0.176160ms, Scaling: 1.748608ms, filter: 35.787712ms
+[CUDA] Creation: 0.172640ms, Scaling: 1.748736ms, filter: 35.817760ms
+[CUDA] Creation: 0.174880ms, Scaling: 1.749024ms, filter: 35.515968ms
+[CUDA] Creation: 0.173280ms, Scaling: 1.748704ms, filter: 35.487328ms
+[CUDA] Creation: 0.176000ms, Scaling: 1.750528ms, filter: 35.488384ms
+[CUDA] Creation: 0.174112ms, Scaling: 1.751072ms, filter: 35.507584ms
+[CUDA] Creation: 0.175968ms, Scaling: 1.750592ms, filter: 35.903873ms
+[CUDA] Creation: 0.176128ms, Scaling: 1.751008ms, filter: 35.906528ms
+Target time: 444 milliseconds, 22.5225 Frames Per Second.
+
+
+Speedup: 75.7613
+
+[Result]
+        [Sequential Average] Creation: 28.019702ms, Scaling: 122.516308ms, filter: 3066.196924ms
+        [  CUDA Average   ] Creation: 0.177539ms, Scaling: 1.750010ms, filter: 40.562611ms
+        [     Speedup     ] Creation: 157.822620, Scaling: 16.011170, filter: 75.591704
+Done
+Type Enter to quit..

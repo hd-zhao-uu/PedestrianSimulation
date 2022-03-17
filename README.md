@@ -1,4 +1,38 @@
-# 1DL550_Assignment
+# Pedestrian simulation 
+This repo is for the assignments of Low-level Parallel Programming(1DL550) at Uppsala University.
+
+The final result which contains the parallel collision prevention(OpenMP) and heatmap generation(CUDA) is shown below. 
+
+<img src="./results/final.gif" width="500" height="400" />
+
+## Commands
+
+A3 and A4
+```bash
+demo/demo --threads 8 --impl REGION lab3-scenario.xml
+```
+
+Others
+```bash
+demo/demo --threads 8 --impl OMP scenario.xml
+
+demo/demo --threads 8 --impl PTHREAD scenario.xml
+
+demo/demo --threads 8 --impl CUDA scenario.xml
+```
+
+Timing Mode:
+```bash
+demo/demo --threads 8 --impl OMP --timing-mode scenario.xml
+demo/demo --threads 8 --impl PTHREAD --timing-mode scenario.xml
+demo/demo --threads 8 --impl VECTOR --timing-mode scenario.xml
+demo/demo --threads 8 --impl CUDA --timing-mode scenario.xml
+
+```
+
+
+---
+# Original Readme: 1DL550_Assignment
 Assignment of 1DL550 Low-level Parallel Programming at Uppsala University
 
 ## Prerequisite: Load dependencies on UPPMAX
