@@ -1,5 +1,6 @@
-# Pedestrian simulation 
-This repo is for the assignments of Low-level Parallel Programming(1DL550) at Uppsala University.
+# Pedestrian Simulation 
+This repo is for the assignments of Low-level Parallel Programming(1DL550) at Uppsala University. 
+The Original Repo: https://github.com/iamchanghyunpark/1DL550_Assignment.
 
 The final result which contains the parallel collision prevention(OpenMP) and heatmap generation(CUDA) is shown below. 
 
