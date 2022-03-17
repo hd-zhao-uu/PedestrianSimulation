@@ -115,7 +115,7 @@ void Ped::Model::updateHeatmapSeq() {
 	hmFilterSeqTotal += hmFilterSeq;
     
 
-    printf("[Sequntial] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationSeq, hmScalingSeq, hmFilterSeq);
+    printf("[Sequential] Creation: %fms, Scaling: %fms, filter: %fms\n", hmCreationSeq, hmScalingSeq, hmFilterSeq);
 }
 
 int Ped::Model::getHeatmapSize() const {
